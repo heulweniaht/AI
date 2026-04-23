@@ -1,1 +1,29 @@
-node_modules/ 
+# Node.js
+node_modules/
+.env
+dist/
+build/
+.next/
+npm-debug.log*
+yarn-error.log*
+yarn-debug.log*
+
+# Java / Maven
+target/
+*.class
+*.jar
+*.war
+*.ear
+.mvn/
+
+# IDEs
+.idea/
+*.iml
+.vscode/
+.classpath
+.project
+.settings/
+
+# OS generated files
+.DS_Store
+Thumbs.db
