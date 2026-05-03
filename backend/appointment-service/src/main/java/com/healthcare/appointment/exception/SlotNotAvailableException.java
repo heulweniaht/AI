@@ -1,4 +1,7 @@
 package com.healthcare.appointment.exception;
 
-public class SlotNotAvailableException {
+public class SlotNotAvailableException extends RuntimeException {
+    public SlotNotAvailableException(String message) {
+        super(message);
+    }
 }

@@ -1,0 +1,41 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: AUTH-SERVICE
+  # Cấu hình kết nối MySQL trực tiếp (không dùng Flyway theo yêu cầu của bạn)
+  datasource:
+    url: jdbc:mysql://localhost:3306/auth_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC&createDatabaseIfNotExist=true
+    username: root
+    password: thai2003
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update # Tự động tạo/cập nhật bảng trong MySQL dựa trên Entity
+    show-sql: true     # In câu lệnh SQL ra console để dễ debug
+    #properties:
+  # Cấu hình Redis
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      # password: ${REDIS_PASSWORD:} # Bỏ comment nếu Redis có pass
+
+  # Cấu hình Kafka
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka
+
+# Cấu hình JWT
+jwt:
+  secret: ${JWT_SECRET:bXlTZWN1cmVTZWNyZXRLZXlGb3JKV1RIZWFsdGhjYXJlMjAyNQ==} # Chuỗi base64 ngẫu nhiên
+  access-expiry: 900000            # 15 phút (tính bằng ms)
+  refresh-expiry: 604800000        # 7 ngày (tính bằng ms)

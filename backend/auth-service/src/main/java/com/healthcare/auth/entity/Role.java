@@ -1,4 +1,5 @@
 package com.healthcare.auth.entity;
 
-public class Role {
+public enum  Role {
+    PATIENT, DOCTOR, ADMIN
 }

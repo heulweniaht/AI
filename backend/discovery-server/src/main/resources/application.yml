@@ -3,7 +3,10 @@ server:
 spring:
   application:
     name: DISCOVERY-SERVER
-
+  security:
+    user:
+      name: admin
+      password: 123456
 eureka:
   instance:
     hostname: localhost

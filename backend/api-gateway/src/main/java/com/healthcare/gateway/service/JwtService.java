@@ -13,10 +13,13 @@ import java.security.PublicKey;
 
 @Service
 public class JwtService {
+
     @Value("${jwt.secret}")
     private String secret;
 
-    public Claims extraAllClaims(String token) throws JwtException{
+    // Cơ chế: Đưa token vào, dùng chìa khóa bí mật (secret) để mở ổ khóa.
+    // Nếu token bị giả mạo hoặc hết hạn, hàm này sẽ ném ra lỗi (JwtException).
+    public Claims extractAllClaims(String token) throws JwtException {
         return Jwts.parser()
                 .verifyWith(getSignKey())
                 .build()
@@ -24,6 +27,7 @@ public class JwtService {
                 .getPayload();
     }
 
+    // Hàm tạo chìa khóa giải mã theo chuẩn HMAC-SHA
     private SecretKey getSignKey() {
         byte[] keyBytes = Decoders.BASE64.decode(secret);
         return Keys.hmacShaKeyFor(keyBytes);
