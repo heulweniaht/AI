@@ -2,6 +2,7 @@ package com.healthcare.auth.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -29,6 +30,14 @@ public class User implements UserDetails {
     private boolean enabled = false; // Chờ xác thực OTP mới enable
 
     private boolean isLocked = false;
+
+    @CreationTimestamp
+    @Column(name = "created_at", updatable = false)
+    private LocalDateTime createdAt;
+
+    @CreationTimestamp
+    @Column(name = "updated_At", updatable = false)
+    private LocalDateTime updatedAt;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

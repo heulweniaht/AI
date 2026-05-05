@@ -15,6 +15,7 @@ export interface DoctorProfile {
     specialtyName: string
     fullName: string
     bio: string
+    description?: string
     experienceYears: number
     clinicName: string
     clinicAddress: string

@@ -1,5 +1,6 @@
 package com.healthcare.auth.dto.response;
 
+import com.healthcare.auth.entity.User;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -15,4 +16,6 @@ public class AuthResponse {
     private long expiresIn;
     private Long userId;
     private String role;
+
+    private User user;
 }
