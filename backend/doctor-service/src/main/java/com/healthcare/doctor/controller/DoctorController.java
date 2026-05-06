@@ -10,6 +10,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/v1/doctors")
 @RequiredArgsConstructor
@@ -40,4 +42,19 @@ public class DoctorController {
             @RequestParam Double fee) {
         return ResponseEntity.ok(doctorService.updateDoctorInfo(id, city, fee));
     }
+
+    @GetMapping("/admin/pending")
+    public ResponseEntity<List<DoctorDetailResponse>> getPendingDoctors() {
+        return ResponseEntity.ok(doctorService.getPendingDoctors());
+    }
+
+    @PutMapping("/admin/{id}/status")
+    public ResponseEntity<Long> updateDoctorStatus( // Đổi Void thành Long
+                                                    @PathVariable Long id,
+                                                    @RequestParam String status) {
+
+        return ResponseEntity.ok(doctorService.updateDoctorStatus(id, status));
+    }
+
+
 }

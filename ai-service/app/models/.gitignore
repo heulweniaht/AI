@@ -1,0 +1,14 @@
+# Ignore tất cả model artifacts (nặng, load từ S3/MinIO trong production)
+*.pkl
+*.npz
+*.bin
+*.pt
+*.pth
+
+# Thư mục PhoBERT fine-tuned
+phobert_symptom/
+
+# Metadata tự động generate
+model_metadata.json
+
+# Chỉ giữ file này (.gitkeep) để thư mục tồn tại trong git

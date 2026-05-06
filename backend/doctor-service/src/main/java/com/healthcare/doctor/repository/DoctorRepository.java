@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -33,4 +34,6 @@ public interface DoctorRepository extends JpaRepository<DoctorProfile, Long> {
     @Modifying
     @Query("UPDATE DoctorProfile d SET d.ratingAvg = :avg, d.totalReviews = :total WHERE d.id = :id")
     void updateRating(@Param("id") Long id, @Param("avg") Double avg, @Param("total") Long total);
+
+    List<DoctorProfile> findByStatus(String status);
 }

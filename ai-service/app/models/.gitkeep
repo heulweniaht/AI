@@ -1,0 +1,7 @@
+# Thư mục này chứa trained model artifacts.
+# Các file .pkl, .npz, .bin đều bị gitignored.
+# Sau khi training, upload lên S3/MinIO để team dùng chung.
+#
+# Để tạo models, chạy:
+#   python -m app.ml.train_symptom_model   # -> symptom_classifier.pkl + specialty_encoder.pkl
+#   python -m app.ml.train_recommender     # -> recommender_matrix.npz + recommender_meta.pkl

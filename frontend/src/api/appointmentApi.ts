@@ -1,16 +1,19 @@
-import { Appointment, BookAppointmentRequest, CancelAppointmentRequest, CompleteAppointmentRequest } from "@/types/appointment.types";
-import axiosInstance from "./axiosInstance";
-import { ApiResponse, PagedResponse } from "@/types/common.types";
+import axiosInstance from './axiosInstance';
+import {
+    Appointment, BookAppointmentRequest,
+    CancelAppointmentRequest, CompleteAppointmentRequest
+} from '@/types/appointment.types';
+import { PagedResponse } from '@/types/common.types';
 
 export const appointmentApi = {
     //Bệnh nhân đặt lịch mới
     bookAppointment: async (
         data: BookAppointmentRequest
     ): Promise<Appointment> => {
-        const res = await axiosInstance.post<ApiResponse<Appointment>>(
+        const res = await axiosInstance.post<Appointment>(
             '/appointments', data
         )
-        return res.data.data
+        return res.data;
     },
 
     //Lấy danh sách lịch khám của tôi
@@ -19,18 +22,18 @@ export const appointmentApi = {
         size?: number
         status?: string
     } = {}): Promise<PagedResponse<Appointment>> => {
-        const res = await axiosInstance.get<ApiResponse<PagedResponse<Appointment>>>(
+        const res = await axiosInstance.get<PagedResponse<Appointment>>(
             '/appointments', { params: { page: 0, size: 10, ...params } }
         )
-        return res.data.data
+        return res.data;
     },
 
     //Lấy chi tiết 1 lịch khám
     getAppointmentById: async (id: number): Promise<Appointment> => {
-        const res = await axiosInstance.get<ApiResponse<Appointment>>(
+        const res = await axiosInstance.get<Appointment>(
             `/appointments/${id}`
         )
-        return res.data.data
+        return res.data;
     },
 
     //Hủy lịch
@@ -38,10 +41,10 @@ export const appointmentApi = {
         id: number,
         data: CancelAppointmentRequest
     ): Promise<Appointment> => {
-        const res = await axiosInstance.patch<ApiResponse<Appointment>>(
+        const res = await axiosInstance.patch<Appointment>(
             `/appointments/${id}/cancel`, data
         )
-        return res.data.data
+        return res.data;
     },
 
     //Hoàn thành lịch khám (Chỉ dành cho bác sĩ)
@@ -49,9 +52,9 @@ export const appointmentApi = {
         id: number,
         data: CompleteAppointmentRequest
     ): Promise<Appointment> => {
-        const res = await axiosInstance.patch<ApiResponse<Appointment>>(
+        const res = await axiosInstance.patch<Appointment>(
             `/appointments/${id}/complete`, data
         )
-        return res.data.data
+        return res.data;
     }
 }

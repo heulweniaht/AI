@@ -13,8 +13,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.PostMapping;
 
 import java.math.BigDecimal;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -40,6 +43,11 @@ public class DoctorSearchService implements DoctorService {
                 .ratingAvg(doctor.getRatingAvg())
                 .totalReviews(doctor.getTotalReviews())
                 .consultationFee(doctor.getConsultationFee())
+                .description(doctor.getBio())
+                .clinicName(doctor.getClinicName())
+                .clinicAddress(doctor.getClinicAddress())
+                .experienceYears(doctor.getExperienceYears())
+                .avatarUrl(doctor.getAvatarUrl())
                 .build();
     }
 
@@ -56,6 +64,10 @@ public class DoctorSearchService implements DoctorService {
                 .clinicCity(doctor.getClinicCity())
                 .ratingAvg(doctor.getRatingAvg())
                 .consultationFee(doctor.getConsultationFee())
+                .clinicName(doctor.getClinicName())
+                .clinicAddress(doctor.getClinicAddress())
+                .experienceYears(doctor.getExperienceYears())
+                .avatarUrl(doctor.getAvatarUrl())
                 .build());
     }
 
@@ -72,5 +84,47 @@ public class DoctorSearchService implements DoctorService {
 
         log.info("Đã cập nhật Bác sĩ ID: {} và xóa Cache tương ứng", id);
         return doctorRepo.save(doctor);
+    }
+
+    @Override
+    public List<DoctorDetailResponse> getPendingDoctors() {
+        List<DoctorProfile> pendingDoctors = doctorRepo.findByStatus("PENDING");
+
+        return pendingDoctors.stream().map(doctor -> DoctorDetailResponse.builder()
+                .id(doctor.getId())
+                .fullName(doctor.getFullName())
+                .specialtyName(doctor.getSpecialty() != null ? doctor.getSpecialty().getName() : "Chưa cập nhật")
+                .clinicName(doctor.getClinicName())
+                .clinicCity(doctor.getClinicCity())
+                .build()
+        ).collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional
+    @CacheEvict(value = "doctor:detail", key = "#id")
+    public Long updateDoctorStatus(Long id, String status) { // Đổi void thành Long
+        DoctorProfile doctor = doctorRepo.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy bác sĩ"));
+
+        doctor.setStatus(status);
+        doctorRepo.save(doctor);
+        log.info("Admin đã cập nhật trạng thái Bác sĩ ID: {} thành {}", id, status);
+
+        return doctor.getUserId(); // Trả về userId để Admin Service dùng
+    }
+    @PostMapping("/internal/init-profile")
+    public org.springframework.http.ResponseEntity<Void> initDoctorProfile(
+            @org.springframework.web.bind.annotation.RequestParam Long userId,
+            @org.springframework.web.bind.annotation.RequestParam String fullName) {
+
+        DoctorProfile newProfile = com.healthcare.doctor.entity.DoctorProfile.builder()
+                .userId(userId)
+                .fullName(fullName)
+                .status("PENDING") // Ép cứng trạng thái khởi tạo
+                .build();
+
+        doctorRepo.save(newProfile);
+        return org.springframework.http.ResponseEntity.ok().build();
     }
 }

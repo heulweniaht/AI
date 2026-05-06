@@ -1,3 +1,54 @@
-fastapi==0.100.0
-uvicorn==0.23.0
-scikit-learn==1.3.0
+# ── Web Framework ─────────────────────────────────────────────────────────
+fastapi==0.111.0
+uvicorn[standard]==0.29.0         # [standard] bao gồm websockets, httptools
+python-multipart==0.0.9           # Upload files
+
+# ── Data Validation ───────────────────────────────────────────────────────
+pydantic==2.7.1
+pydantic-settings==2.2.1          # BaseSettings đọc từ .env
+
+# ── Machine Learning ──────────────────────────────────────────────────────
+scikit-learn==1.4.2
+numpy==1.26.4
+pandas==2.2.2
+scipy==1.13.0
+joblib==1.4.2                     # Serialize/deserialize sklearn models
+
+# ── Deep Learning (PhoBERT) ───────────────────────────────────────────────
+torch==2.2.2
+transformers==4.40.1
+sentencepiece==0.2.0
+sentence-transformers==3.0.1
+
+# ── Vietnamese NLP ────────────────────────────────────────────────────────
+underthesea==6.8.0                # Word segmentation, POS tagging
+pyvi==0.1.1                       # Lightweight Vietnamese tokenizer
+
+# ── LLM / OpenAI ─────────────────────────────────────────────────────────
+openai==1.30.1
+tiktoken==0.7.0                   # Token counting cho OpenAI
+
+# ── Cache & Database ──────────────────────────────────────────────────────
+redis==5.0.4
+aioredis==2.0.1
+sqlalchemy[asyncio]==2.0.30
+asyncpg==0.29.0                   # Async PostgreSQL driver (AI service dùng Postgres)
+alembic==1.13.1                   # DB migration cho AI service
+
+# ── HTTP & Auth ───────────────────────────────────────────────────────────
+httpx==0.27.0                     # Async HTTP client
+python-jose[cryptography]==3.3.0  # JWT decode (verify token từ Spring)
+passlib==1.7.4
+
+# ── Background Tasks ──────────────────────────────────────────────────────
+celery==5.4.0
+flower==2.0.1                     # Celery monitoring UI
+
+# ── Monitoring ────────────────────────────────────────────────────────────
+prometheus-fastapi-instrumentator==7.0.0
+structlog==24.1.0                 # Structured logging
+
+# ── Utilities ─────────────────────────────────────────────────────────────
+python-dotenv==1.0.1
+orjson==3.10.3                    # Fast JSON serialization
+tenacity==8.3.0                   # Retry decorator

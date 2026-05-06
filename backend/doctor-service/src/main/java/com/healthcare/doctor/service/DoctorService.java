@@ -6,8 +6,13 @@ import com.healthcare.doctor.dto.response.DoctorListResponse;
 import com.healthcare.doctor.entity.DoctorProfile;
 import org.springframework.data.domain.Page;
 
+import java.util.List;
+
 public interface DoctorService {
     DoctorDetailResponse getDoctorById(Long id);
     Page<DoctorListResponse> searchDoctors(DoctorSearchFilter filter, int page, int size);
     DoctorProfile updateDoctorInfo(Long id, String city, Double newFee);
+    List<DoctorDetailResponse> getPendingDoctors();
+
+    Long updateDoctorStatus(Long id, String status);
 }

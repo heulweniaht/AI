@@ -14,4 +14,8 @@ public class DoctorListResponse {
     private String clinicCity;
     private Double ratingAvg;
     private BigDecimal consultationFee;
+    private String clinicName;
+    private String clinicAddress;
+    private Integer experienceYears;
+    private String avatarUrl;
 }

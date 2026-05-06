@@ -8,8 +8,7 @@ export const usePendingDoctors = () => {
         queryKey: ['admin', 'pending-doctors'],
         queryFn: async () => {
             const response = await axiosInstance.get('/admin/doctors/pending');
-            //Check sau
-            return response.data.data;
+            return response.data;
         },
     });
 };
@@ -21,8 +20,16 @@ export const useApproveDoctor = () => {
 
     return useMutation({
         mutationFn: async ({ id, status }: { id: number, status: 'APPROVED' | 'REJECTED' }) => {
-            const response = await axiosInstance.put(`/admin/doctors/${id}/approve`, { status });
-            return response.data.data;
+            const isApproved = status === 'APPROVED';
+
+            // SỬA: Đổi axiosInstance.put thành .post, đổi /approve thành /approval
+            // SỬA: Gửi đúng định dạng body (isApproved, reason) mà backend đang cần
+            const response = await axiosInstance.post(`/admin/doctors/${id}/approval`, {
+                isApproved: isApproved,
+                reason: isApproved ? '' : 'Hồ sơ chưa đạt yêu cầu chuyên môn'
+            });
+
+            return response.data;
         },
         onSuccess: (_, variables) => {
             queryClient.invalidateQueries({ queryKey: ['admin', 'pending-doctors'] });
@@ -34,7 +41,7 @@ export const useApproveDoctor = () => {
             }
         },
         onError: () => {
-            toast.error('Có lỗi xảy ra!');
+            toast.error('Có lỗi xảy ra trong quá trình xử lý!');
         }
     })
 }
@@ -44,8 +51,8 @@ export const useAdminStats = () => {
     return useQuery({
         queryKey: ['admin', 'stats'],
         queryFn: async () => {
-            const response = await axiosInstance.get('/admin/stats');
-            return response.data.data;
+            const response = await axiosInstance.get('/admin/dashboard/stats');
+            return response.data;
         },
         staleTime: 5 * 60 * 1000,
     });
@@ -57,7 +64,7 @@ export const useAdminUsers = (params: { keyword?: string; role?: string; page?: 
         queryKey: ['admin', 'users', params],
         queryFn: async () => {
             const response = await axiosInstance.get('/admin/users', { params });
-            return response.data.data;
+            return response.data;
         },
         staleTime: 60 * 1000,
     });

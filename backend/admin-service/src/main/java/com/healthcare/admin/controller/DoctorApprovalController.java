@@ -23,4 +23,8 @@ public class DoctorApprovalController {
         String message = request.isApproved() ? "Đã duyệt hồ sơ bác sĩ" : "Đã từ chối hồ sơ bác sĩ";
         return ResponseEntity.ok(message);
     }
+    @GetMapping("/pending")
+    public ResponseEntity<Object> getPendingDoctors() {
+        return ResponseEntity.ok(approvalService.getPendingDoctors());
+    }
 }

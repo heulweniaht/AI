@@ -17,4 +17,8 @@ public class DoctorDetailResponse {
     private Long totalReviews;
     private BigDecimal consultationFee;
     private String description;
+    private String clinicName;
+    private String clinicAddress;
+    private Integer experienceYears;
+    private String avatarUrl;
 }

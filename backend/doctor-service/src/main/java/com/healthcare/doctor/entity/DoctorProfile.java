@@ -2,6 +2,7 @@ package com.healthcare.doctor.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+
 import java.math.BigDecimal;
 
 @Entity
@@ -26,10 +27,17 @@ public class DoctorProfile {
     private BigDecimal consultationFee;
 
     @Builder.Default
-    private String status = "ACTIVE";
+    private String status = "PENDING";
 
     // Mối quan hệ Nhiều-Bác-Sĩ thuộc về Một-Chuyên-Khoa
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "specialty_id")
     private Specialty specialty;
+
+    private String bio;
+    private Integer experienceYears;
+    private String clinicName;
+    private String clinicAddress;
+    private Integer totalAppointments;
+    private String avatarUrl;
 }

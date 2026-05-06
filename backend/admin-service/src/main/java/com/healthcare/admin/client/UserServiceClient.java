@@ -13,4 +13,15 @@ public interface UserServiceClient {
 
     @PatchMapping("/api/v1/auth/admin/users/{userId}/status")
     void updateUserStatus(@PathVariable("userId") Long userId, @RequestParam("isLocked") boolean isLocked);
+
+    @GetMapping("/api/v1/auth/admin/users/search")
+    Object searchUsers(
+            @RequestParam(value = "keyword", required = false) String keyword,
+            @RequestParam(value = "role", required = false) String role,
+            @RequestParam(value = "page") int page,
+            @RequestParam(value = "size") int size);
+
+
+    @PatchMapping("/api/v1/auth/admin/users/{userId}/enable")
+    void enableUser(@PathVariable("userId") Long userId);
 }

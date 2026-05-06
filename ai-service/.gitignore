@@ -1,0 +1,48 @@
+# ── Python ────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+.Python
+
+# ── Virtual environments ──────────────────────────────────────────────────
+venv/
+env/
+.venv/
+.env/
+
+# ── Environment files ─────────────────────────────────────────────────────
+.env
+# .env.example is COMMITTED (template only)
+
+# ── ML Model artifacts (nặng, không commit - load từ S3/MinIO) ───────────
+app/models/*.pkl
+app/models/*.npz
+app/models/*.bin
+app/models/phobert_symptom/
+app/models/model_metadata.json
+
+# ── Training outputs ──────────────────────────────────────────────────────
+logs/
+*.log
+app/ml/confusion_matrix.png
+
+# ── Extracted document (tạm thời) ────────────────────────────────────────
+doc_content.txt
+
+# ── Test & Coverage ───────────────────────────────────────────────────────
+.pytest_cache/
+.coverage
+htmlcov/
+coverage.xml
+
+# ── IDE ───────────────────────────────────────────────────────────────────
+.vscode/settings.json
+.idea/
+*.swp
+*.swo

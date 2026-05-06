@@ -8,7 +8,7 @@ import { useBookingStore } from '@/store/bookingStore';
 import { Spinner } from '@/components/common/Spinner';
 
 const BookingPage = () => {
-   const { doctorId } = useParams<{ doctorId: string }>();
+   const { id } = useParams<{ id: string }>();
    const navigate = useNavigate();
 
    // 2. Zustand Store: Lấy các biến state lưu trữ tạm thời
@@ -21,14 +21,14 @@ const BookingPage = () => {
    } = useBookingStore();
 
    // 3. React Query: Gọi API lấy chi tiết bác sĩ
-   const { data: doctor, isLoading: isDoctorLoading } = useDoctorDetail(Number(doctorId));
+   const { data: doctor, isLoading: isDoctorLoading } = useDoctorDetail(Number(id));
 
    // 4. State cho việc chọn ngày ở Bước 1
    // Mặc định chọn ngày hiện tại
    const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0]);
 
    // 5. React Query: Gọi API lấy các slot giờ trống dựa trên ngày đã chọn
-   const { data: availableSchedules, isLoading: isSchedulesLoading } = useDoctorSchedules(Number(doctorId), selectedDate);
+   const { data: availableSchedules, isLoading: isSchedulesLoading } = useDoctorSchedules(Number(id), selectedDate);
 
    // 6. React Query: Gửi dữ liệu Đặt lịch
    const { mutate: bookAppointment, isPending: isBookingPending, data: createdAppointment } = useBookAppointment();

@@ -41,4 +41,14 @@ public class AppointmentController {
         boolean isCompleted = appointmentService.checkAppointmentCompleted(appointmentId, patientId, doctorId);
         return ResponseEntity.ok(isCompleted);
     }
+
+    @GetMapping
+    public ResponseEntity<org.springframework.data.domain.Page<com.healthcare.appointment.dto.response.AppointmentResponse>> getMyAppointments(
+            @RequestHeader("X-User-Id") Long userId,
+            @RequestHeader("X-User-Role") String role,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+
+        return ResponseEntity.ok(appointmentService.getMyAppointments(userId, role, page, size));
+    }
 }

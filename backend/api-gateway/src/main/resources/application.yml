@@ -55,7 +55,7 @@ spring:
         - id: doctor-service
           uri: lb://DOCTOR-SERVICE
           predicates:
-            - Path=/api/v1/doctor/**, /api/v1/specialties/**
+            - Path=/api/v1/doctors/**, /api/v1/specialties/**
           filters:
             - name: RequestRateLimiter
               args:

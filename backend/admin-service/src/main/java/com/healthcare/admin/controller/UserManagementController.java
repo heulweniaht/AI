@@ -25,4 +25,14 @@ public class UserManagementController {
         userService.unlockUser(userId);
         return ResponseEntity.ok("Đã mở khóa tài khoản " + userId);
     }
+
+    @GetMapping
+    public ResponseEntity<Object> getUsers(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String role,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+
+        return ResponseEntity.ok(userService.searchUsers(keyword, role, page, size));
+    }
 }

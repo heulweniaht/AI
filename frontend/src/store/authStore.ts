@@ -56,7 +56,11 @@ export const useAuthStore = create<AuthState>()(
       name: 'auth-storage', // Tên key lưu trong trình duyệt
       storage: createJSONStorage(() => sessionStorage), // Dùng Session Storage
       // Tuyệt đối KHÔNG lưu accessToken xuống ổ cứng, chỉ lưu thông tin User để render giao diện
-      partialize: (state) => ({ user: state.user, isLoggedIn: state.isLoggedIn }),
+      partialize: (state) => ({
+        user: state.user,
+        isLoggedIn: state.isLoggedIn,
+        accessToken: state.accessToken
+      }),
     }
   )
 )

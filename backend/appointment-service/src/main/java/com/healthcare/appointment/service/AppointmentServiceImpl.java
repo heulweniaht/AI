@@ -11,10 +11,15 @@ import com.healthcare.appointment.kafka.AppointmentEventProducer;
 import com.healthcare.appointment.repository.AppointmentRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -90,6 +95,41 @@ public class AppointmentServiceImpl implements AppointmentService {
                 patientId,
                 doctorId,
                 AppointmentStatus.COMPLETED
+        );
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<AppointmentResponse> getMyAppointments(Long userId, String role, int page, int size) {
+        java.util.List<Appointment> list;
+
+        // Dựa vào Role để quyết định tìm theo cột nào
+        if ("DOCTOR".equals(role)) {
+            list = appointmentRepo.findByDoctorIdOrderByAppointmentTimeDesc(userId);
+        } else {
+            list = appointmentRepo.findByPatientIdOrderByAppointmentTimeDesc(userId);
+        }
+
+        // Map sang DTO Response
+        List<AppointmentResponse> responses = list.stream().map(appt ->
+                AppointmentResponse.builder()
+                        .appointmentId(appt.getId())
+                        .patientId(appt.getPatientId())
+                        .doctorId(appt.getDoctorId())
+                        .status(appt.getStatus().name())
+                        .reason(appt.getReason())
+                        .appointmentTime(appt.getAppointmentTime())
+                        .createdAt(appt.getCreatedAt())
+                        .build()
+        ).collect(Collectors.toList());
+
+        // Bọc vào PageImpl để Frontend nhận được các trường totalPages, totalElements...
+        int start = Math.min(page * size, responses.size());
+        int end = Math.min((page + 1) * size, responses.size());
+        return new PageImpl<>(
+                responses.subList(start, end),
+                PageRequest.of(page, size),
+                responses.size()
         );
     }
 }

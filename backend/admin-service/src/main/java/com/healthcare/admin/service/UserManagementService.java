@@ -23,4 +23,9 @@ public class UserManagementService {
         // isLocked = false
         userClient.updateUserStatus(userId, false);
     }
+
+    public Object searchUsers(String keyword, String role, int page, int size) {
+        // Dùng userClient đã được inject sẵn trong class này
+        return userClient.searchUsers(keyword, role, page, size);
+    }
 }

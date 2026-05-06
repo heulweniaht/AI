@@ -1,9 +1,11 @@
 package com.healthcare.auth.service;
 
+import com.healthcare.auth.entity.Role;
 import com.healthcare.auth.entity.User;
 import com.healthcare.auth.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,5 +31,23 @@ public class AdminUserService {
         userRepository.save(user);
 
         log.info("Đã thay đổi trạng thái isLocked của User {} thành {}", userId, isLocked);
+    }
+    public Page<User> searchUsers(String keyword, String roleStr, int page, int size) {
+        Role role = (roleStr != null && !roleStr.isEmpty()) ? Role.valueOf(roleStr) : null;
+        return userRepository.searchUsers(
+                keyword,
+                role,
+                org.springframework.data.domain.PageRequest.of(page, size, org.springframework.data.domain.Sort.by("createdAt").descending())
+        );
+    }
+
+    @Transactional
+    public void enableUser(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy User ID: " + userId));
+
+        user.setEnabled(true);
+        userRepository.save(user);
+        log.info("Đã kích hoạt (enable = true) cho User ID: {}", userId);
     }
 }

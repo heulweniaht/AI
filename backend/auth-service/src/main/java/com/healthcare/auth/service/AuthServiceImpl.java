@@ -35,6 +35,7 @@ public class AuthServiceImpl implements AuthService {
         if (userRepository.existsByEmail(req.getEmail())) {
             throw new RuntimeException("Email đã được sử dụng");
         }
+        boolean isDoctor = req.getRole().equalsIgnoreCase("DOCTOR");
 
         // 2. Tạo User và băm mật khẩu bằng BCrypt [cite: 116, 321-329]
         User user = User.builder()
@@ -43,10 +44,12 @@ public class AuthServiceImpl implements AuthService {
                 .fullName(req.getFullName())
                 .phone(req.getPhone())
                 .role(Role.valueOf(req.getRole().toUpperCase()))
-                .enabled(true)
+                .enabled(!isDoctor)
                 .build();
         userRepository.save(user);
-
+        if (isDoctor) {
+            return "Đăng ký thành công. Tài khoản bác sĩ đang chờ Admin phê duyệt.";
+        }
         // 3. Xử lý OTP và thông báo qua Kafka [cite: 117-118, 333-334]
 //        String otp = otpService.generateAndStoreOtp(user.getEmail());
 //        eventProducer.publishOtpRequested(user.getEmail(), user.getFullName(), otp);
@@ -56,16 +59,25 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public AuthResponse login(LoginRequest req) {
-        authManager.authenticate(
-                new UsernamePasswordAuthenticationToken(req.getEmail(), req.getPassword())
-        );
-
+        // 1. Tìm user trước để lấy thông tin Role
         User user = userRepository.findByEmail(req.getEmail())
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy user"));
+                .orElseThrow(() -> new RuntimeException("Tài khoản hoặc mật khẩu không chính xác"));
 
-        // 3. Kiểm tra xem đã kích hoạt OTP chưa
-        if (!user.isEnabled()) {
-            throw new RuntimeException("Tài khoản chưa được kích hoạt. Vui lòng xác minh OTP.");
+        // 2. Dùng try-catch để bắt chính xác lỗi từ Spring Security
+        try {
+            authManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(req.getEmail(), req.getPassword())
+            );
+        } catch (org.springframework.security.authentication.DisabledException e) {
+            // ĐÓN LÕNG LỖI DISABLED Ở ĐÂY
+            if (user.getRole() == Role.DOCTOR) {
+                // Chủ động ném ra RuntimeException để GlobalExceptionHandler (ở bài trước) bắt lại thành JSON chuẩn
+                throw new RuntimeException("Tài khoản đang chờ Admin phê duyệt.");
+            } else {
+                throw new RuntimeException("Tài khoản chưa được kích hoạt OTP.");
+            }
+        } catch (org.springframework.security.authentication.BadCredentialsException e) {
+            throw new RuntimeException("Tài khoản hoặc mật khẩu không chính xác");
         }
 
         // 4. Sinh cặp Token

@@ -1,5 +1,6 @@
 package com.healthcare.auth.controller;
 
+import com.healthcare.auth.entity.User;
 import com.healthcare.auth.service.AdminUserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -25,6 +26,21 @@ public class AdminUserController {
             @RequestParam boolean isLocked) {
 
         adminUserService.updateUserStatus(userId, isLocked);
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<org.springframework.data.domain.Page<User>> searchUsers(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String role,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        return ResponseEntity.ok(adminUserService.searchUsers(keyword, role, page, size));
+    }
+
+    @PatchMapping("/{userId}/enable")
+    public ResponseEntity<Void> enableUser(@PathVariable Long userId) {
+        adminUserService.enableUser(userId);
         return ResponseEntity.ok().build();
     }
 }
