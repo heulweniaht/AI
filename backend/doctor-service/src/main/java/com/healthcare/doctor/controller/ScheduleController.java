@@ -1,5 +1,6 @@
 package com.healthcare.doctor.controller;
 
+import com.healthcare.doctor.dto.request.CreateScheduleRequest;
 import com.healthcare.doctor.dto.response.AvailableSlotResponse;
 import com.healthcare.doctor.service.ScheduleService;
 import lombok.RequiredArgsConstructor;
@@ -39,6 +40,15 @@ public class ScheduleController {
             @PathVariable Long doctorId,
             @PathVariable Long scheduleId) {
         scheduleService.releaseSlot(scheduleId);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/bulk")
+    public ResponseEntity<Void> createBulkSchedules(
+            @PathVariable Long doctorId,
+            @RequestBody List<CreateScheduleRequest> requests) {
+
+        scheduleService.createBulkSchedules(doctorId, requests);
         return ResponseEntity.ok().build();
     }
 }

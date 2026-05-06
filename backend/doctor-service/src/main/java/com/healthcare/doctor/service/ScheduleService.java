@@ -1,5 +1,6 @@
 package com.healthcare.doctor.service;
 
+import com.healthcare.doctor.dto.request.CreateScheduleRequest;
 import com.healthcare.doctor.dto.response.AvailableSlotResponse;
 import com.healthcare.doctor.entity.DoctorSchedule;
 import com.healthcare.doctor.repository.DoctorScheduleRepository;
@@ -23,10 +24,12 @@ public class ScheduleService {
     public List<AvailableSlotResponse> getAvailableSlots(Long doctorId, LocalDate date) {
         List<DoctorSchedule> slots = scheduleRepository.findAvailableSlots(doctorId, date);
         return slots.stream().map(slot -> AvailableSlotResponse.builder()
-                .scheduleId(slot.getId())
+                .id(slot.getId()) // Sửa thành id()
                 .scheduleDate(slot.getScheduleDate())
                 .startTime(slot.getStartTime())
                 .endTime(slot.getEndTime())
+                .isAvailable(slot.isAvailable()) // Truyền giá trị trạng thái
+                .isBooked(slot.isBooked())       // Truyền giá trị trạng thái
                 .build()).collect(Collectors.toList());
     }
 
@@ -48,5 +51,23 @@ public class ScheduleService {
         schedule.setBooked(false);
         scheduleRepository.save(schedule);
         log.info("Slot {} đã được giải phóng (RELEASED)", scheduleId);
+    }
+
+    @Transactional
+    public void createBulkSchedules(Long doctorId, List<CreateScheduleRequest> requests) {
+        // Lưu các slot mới
+        List<DoctorSchedule> schedules = requests.stream().map(req ->
+                DoctorSchedule.builder()
+                        .doctorId(doctorId)
+                        .scheduleDate(req.getScheduleDate())
+                        .startTime(req.getStartTime())
+                        .endTime(req.getEndTime())
+                        .isAvailable(req.isAvailable())
+                        .isBooked(false)
+                        .build()
+        ).collect(Collectors.toList());
+
+        scheduleRepository.saveAll(schedules);
+        log.info("Đã tạo {} slot khám mới cho bác sĩ {}", schedules.size(), doctorId);
     }
 }

@@ -21,4 +21,7 @@ public interface UserServiceClient {
 
     @PutMapping("/api/v1/auth/admin/users/{userId}/enable")
     void enableUser(@PathVariable("userId") Long userId);
+
+    @DeleteMapping("/api/v1/auth/admin/users/{userId}")
+    void deleteUser(@org.springframework.web.bind.annotation.PathVariable("userId") Long userId);
 }

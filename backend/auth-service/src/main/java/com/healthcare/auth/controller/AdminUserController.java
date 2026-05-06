@@ -43,4 +43,9 @@ public class AdminUserController {
         adminUserService.enableUser(userId);
         return ResponseEntity.ok().build();
     }
+    @DeleteMapping("/{userId}")
+    public ResponseEntity<Void> deleteUser(@PathVariable Long userId) {
+        adminUserService.deleteUser(userId);
+        return ResponseEntity.ok().build();
+    }
 }

@@ -54,4 +54,9 @@ public class AdminUserService {
 
         log.info("Đã kích hoạt (enable = true, ACTIVE) cho User ID: {}", userId);
     }
+    @Transactional
+    public void deleteUser(Long userId) {
+        userRepository.deleteById(userId);
+        log.info("Đã xóa vĩnh viễn User ID: {}", userId);
+    }
 }

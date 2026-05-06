@@ -53,4 +53,10 @@ public class UserManagementController {
             return ResponseEntity.ok("Đã mở khóa tài khoản");
         }
     }
+
+    @DeleteMapping("/{userId}")
+    public ResponseEntity<String> deleteUser(@PathVariable Long userId) {
+        userService.deleteUser(userId);
+        return ResponseEntity.ok("Đã xóa tài khoản thành công");
+    }
 }

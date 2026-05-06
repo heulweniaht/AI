@@ -118,6 +118,7 @@ public class DoctorSearchService implements DoctorService {
     public void initDoctorProfile(Long userId, String fullName) {
         // Tạo profile mới với trạng thái PENDING
         DoctorProfile newProfile = DoctorProfile.builder()
+                .id(userId)
                 .userId(userId)
                 .fullName(fullName)
                 .status("PENDING") // Ép cứng trạng thái khởi tạo

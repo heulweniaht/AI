@@ -78,12 +78,15 @@ const PatientDashboard = () => {
                      <p className="text-gray-500 font-bold text-xs uppercase tracking-wider mb-3">Bác sĩ phụ trách của bạn</p>
                      <div className="flex items-center gap-4">
                         <div className="w-16 h-16 rounded-full bg-primary-100 border-2 border-primary-200 flex items-center justify-center text-primary-600 font-black text-xl">
-                           {nextAppointment.doctorName.charAt(0)}
+                           {/* Sửa lại thêm dấu ? và giá trị mặc định 'B' */}
+                           {nextAppointment.doctorName?.charAt(0) || 'B'}
                         </div>
                         <div>
-                           <p className="font-extrabold text-gray-900 text-xl">{nextAppointment.doctorName}</p>
+                           {/* Sửa lại thêm giá trị mặc định */}
+                           <p className="font-extrabold text-gray-900 text-xl">{nextAppointment.doctorName || 'Bác sĩ'}</p>
                            <p className="text-primary-600 font-bold text-sm bg-primary-50 px-2 py-0.5 rounded mt-1 inline-block">
-                              Khoa {nextAppointment.specialtyName}
+                              {/* Sửa lại thêm giá trị mặc định */}
+                              Khoa {nextAppointment.specialtyName || 'Đang cập nhật'}
                            </p>
                         </div>
                      </div>
@@ -156,7 +159,8 @@ const PatientDashboard = () => {
                               <p className="text-gray-900 font-extrabold pb-1 text-lg leading-tight">
                                  {activity.status === 'COMPLETED' ? 'Khám Thành Công' : activity.status === 'CANCELLED' ? 'Đã Hủy Lịch' : 'Đã Lên Lịch Khám'}
                               </p>
-                              <p className="text-sm font-bold text-gray-400 mt-1">BS. {activity.doctorName} (#BK{activity.id})</p>
+                              {/* Sửa lại thêm giá trị mặc định */}
+                              <p className="text-sm font-bold text-gray-400 mt-1">BS. {activity.doctorName || 'Đang cập nhật'} (#BK{activity.id})</p>
                               <p className="text-xs text-primary-500 mt-1">{new Date(activity.appointmentTime).toLocaleString('vi-VN')}</p>
                            </div>
                         </div>

@@ -1,5 +1,6 @@
 package com.healthcare.doctor.entity;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDate;
@@ -17,9 +18,11 @@ public class DoctorSchedule {
     private LocalTime startTime;
     private LocalTime endTime;
 
+    @JsonProperty("isAvailable")
     @Builder.Default
     private boolean isAvailable = true;
 
+    @JsonProperty("isBooked")
     @Builder.Default
     private boolean isBooked = false;
 }

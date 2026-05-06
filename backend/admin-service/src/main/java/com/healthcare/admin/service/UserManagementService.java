@@ -28,4 +28,9 @@ public class UserManagementService {
         // Dùng userClient đã được inject sẵn trong class này
         return userClient.searchUsers(keyword, role, page, size);
     }
+
+    public void deleteUser(Long userId) {
+        userClient.deleteUser(userId);
+        log.info("Admin đã ra lệnh xóa User ID: {}", userId);
+    }
 }

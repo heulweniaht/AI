@@ -1,32 +1,58 @@
 import React, { useState } from 'react';
-import { Search, MoreVertical, Mail, Calendar, Lock, Unlock } from 'lucide-react';
-import { useAdminUsers, useToggleUserStatus } from '@/hooks/useAdmin';
+import { Search, Mail, Calendar, Lock, Unlock, MoreVertical, Trash2 } from 'lucide-react';
+import { useAdminUsers, useToggleUserStatus, useDeleteUser } from '@/hooks/useAdmin';
 import { Spinner } from '@/components/common/Spinner';
 
 const UserManagement = () => {
-   // 1. Quản lý trạng thái bộ lọc
    const [keyword, setKeyword] = useState('');
    const [role, setRole] = useState('');
    const [page, setPage] = useState(0);
+   // State để quản lý menu 3 chấm nào đang mở
+   const [openDropdownId, setOpenDropdownId] = useState<number | null>(null);
 
-   // 2. Gọi API danh sách người dùng
    const { data: usersData, isLoading } = useAdminUsers({ keyword, role, page, size: 10 });
-
-   // 3. Gọi API khóa/mở khóa tài khoản
    const { mutate: toggleStatus, isPending: isToggling } = useToggleUserStatus();
+   const { mutate: deleteUser } = useDeleteUser(); // Hook xóa tài khoản
 
-   // Xử lý tìm kiếm khi bấm Enter hoặc nút Kính lúp
    const handleSearch = (e: React.FormEvent) => {
       e.preventDefault();
-      setPage(0); // Reset về trang 1 khi tìm kiếm
-      // Việc gọi API sẽ tự động được trigger bởi React Query khi state 'keyword' thay đổi
+      setPage(0);
    };
 
-   // Hàm đổi quyền sang màu sắc cho đẹp
+   const handleDeleteUser = (id: number, name: string) => {
+      if (window.confirm(`Bạn có chắc chắn muốn xóa vĩnh viễn tài khoản của ${name}? Hành động này không thể hoàn tác!`)) {
+         deleteUser(id);
+      }
+      setOpenDropdownId(null);
+   };
+
    const getRoleStyle = (userRole: string) => {
       if (userRole === 'ADMIN') return 'bg-orange-50 text-orange-700 border-orange-200';
       if (userRole === 'DOCTOR') return 'bg-purple-50 text-purple-700 border-purple-200';
-      return 'bg-blue-50 text-blue-700 border-blue-200'; // PATIENT
+      return 'bg-blue-50 text-blue-700 border-blue-200';
+   };
+
+   // Hàm render trạng thái chuẩn theo Database
+   const renderStatus = (status: string) => {
+      if (status === 'ACTIVE') {
+         return (
+            <span className="flex items-center text-sm font-black uppercase tracking-wider text-green-600">
+               <div className="w-2.5 h-2.5 rounded-full mr-2 shadow-sm bg-green-500"></div>HOẠT ĐỘNG
+            </span>
+         );
+      }
+      if (status === 'PENDING_VERIFY') {
+         return (
+            <span className="flex items-center text-sm font-black uppercase tracking-wider text-yellow-600">
+               <div className="w-2.5 h-2.5 rounded-full mr-2 shadow-sm bg-yellow-500"></div>CHỜ DUYỆT / OTP
+            </span>
+         );
+      }
+      return (
+         <span className="flex items-center text-sm font-black uppercase tracking-wider text-red-600">
+            <div className="w-2.5 h-2.5 rounded-full mr-2 shadow-sm bg-red-500"></div>BỊ KHÓA
+         </span>
+      );
    };
 
    return (
@@ -38,8 +64,7 @@ const UserManagement = () => {
             </button>
          </div>
 
-         <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
-            {/* THANH TÌM KIẾM & LỌC */}
+         <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden min-h-[500px]">
             <div className="p-6 border-b border-gray-100 flex flex-col sm:flex-row gap-4 bg-gray-50/50">
                <form onSubmit={handleSearch} className="relative w-full sm:w-96">
                   <button type="submit" className="absolute left-3 top-1/2 -translate-y-1/2">
@@ -59,7 +84,7 @@ const UserManagement = () => {
                      setRole(e.target.value);
                      setPage(0);
                   }}
-                  className="border border-gray-200 bg-white rounded-xl px-4 py-3 font-medium text-gray-600 outline-none w-full sm:w-auto"
+                  className="border border-gray-200 bg-white rounded-xl px-4 py-3 font-medium text-gray-600 outline-none w-full sm:w-auto cursor-pointer"
                >
                   <option value="">Tất cả Role</option>
                   <option value="PATIENT">Bệnh nhân</option>
@@ -68,7 +93,6 @@ const UserManagement = () => {
                </select>
             </div>
 
-            {/* BẢNG DỮ LIỆU */}
             {isLoading ? (
                <div className="py-20 flex justify-center"><Spinner /></div>
             ) : (
@@ -86,9 +110,9 @@ const UserManagement = () => {
                      <tbody className="divide-y divide-gray-100 bg-white">
                         {usersData?.content && usersData.content.length > 0 ? (
                            usersData.content.map((user: any) => (
-                              <tr key={user.id} className={`hover:bg-primary-50/30 transition-colors group ${user.isLocked ? 'opacity-70 bg-gray-50' : ''}`}>
+                              <tr key={user.id} className={`hover:bg-primary-50/30 transition-colors group ${user.status === 'BANNED' ? 'opacity-70 bg-gray-50' : ''}`}>
                                  <td className="p-5 flex items-center">
-                                    <img src={`https://ui-avatars.com/api/?name=${encodeURIComponent(user.fullName)}&background=random`} alt="avt" className={`w-12 h-12 rounded-full mr-4 shadow-sm border border-gray-100 ${user.isLocked ? 'grayscale' : ''}`} />
+                                    <img src={`https://ui-avatars.com/api/?name=${encodeURIComponent(user.fullName)}&background=random`} alt="avt" className={`w-12 h-12 rounded-full mr-4 shadow-sm border border-gray-100 ${user.status === 'BANNED' ? 'grayscale' : ''}`} />
                                     <div>
                                        <p className="font-extrabold text-gray-900 group-hover:text-primary-600 transition-colors text-lg">
                                           {user.fullName}
@@ -104,10 +128,8 @@ const UserManagement = () => {
                                     </span>
                                  </td>
                                  <td className="p-5">
-                                    <span className={`flex items-center text-sm font-black uppercase tracking-wider ${user.isLocked ? 'text-red-600' : 'text-green-600'}`}>
-                                       <div className={`w-2.5 h-2.5 rounded-full mr-2 shadow-sm ${user.isLocked ? 'bg-red-500' : 'bg-green-500'}`}></div>
-                                       {user.isLocked ? 'Khóa (Banned)' : 'Hoạt động'}
-                                    </span>
+                                    {/* Render đúng status từ Backend trả về */}
+                                    {renderStatus(user.status)}
                                  </td>
                                  <td className="p-5">
                                     <span className="flex items-center text-gray-600 font-bold text-sm">
@@ -115,20 +137,43 @@ const UserManagement = () => {
                                        {new Date(user.createdAt || Date.now()).toLocaleDateString('vi-VN')}
                                     </span>
                                  </td>
-                                 <td className="p-5 flex justify-center items-center gap-2">
-                                    {/* Nút Khóa / Mở khóa Tài khoản */}
+                                 <td className="p-5 flex justify-center items-center gap-2 relative">
+
+                                    {/* Nút Khóa / Mở khóa Tài khoản dựa vào status */}
                                     <button
                                        disabled={isToggling}
-                                       onClick={() => toggleStatus({ id: user.id, isLocked: !user.isLocked })}
-                                       title={user.isLocked ? "Mở khóa tài khoản" : "Khóa tài khoản"}
-                                       className={`p-2 rounded-lg transition-colors border ${user.isLocked ? 'text-green-600 border-green-200 bg-green-50 hover:bg-green-100' : 'text-red-600 border-red-200 bg-red-50 hover:bg-red-100'} disabled:opacity-50`}
+                                       onClick={() => {
+                                          // Nếu đang BANNED thì truyền isLocked = false (để mở)
+                                          // Ngược lại truyền isLocked = true (để khóa)
+                                          toggleStatus({ id: user.id, isLocked: user.status !== 'BANNED' })
+                                       }}
+                                       title={user.status === 'BANNED' ? "Mở khóa tài khoản" : "Khóa tài khoản"}
+                                       className={`p-2 rounded-lg transition-colors border ${user.status === 'BANNED' ? 'text-green-600 border-green-200 bg-green-50 hover:bg-green-100' : 'text-red-600 border-red-200 bg-red-50 hover:bg-red-100'} disabled:opacity-50`}
                                     >
-                                       {user.isLocked ? <Unlock className="w-5 h-5" /> : <Lock className="w-5 h-5" />}
+                                       {user.status === 'BANNED' ? <Unlock className="w-5 h-5" /> : <Lock className="w-5 h-5" />}
                                     </button>
 
-                                    <button className="p-2 hover:bg-gray-100 text-gray-400 hover:text-gray-900 rounded-lg transition-colors">
-                                       <MoreVertical className="w-5 h-5" />
-                                    </button>
+                                    {/* Menu 3 chấm và Nút Xóa */}
+                                    <div className="relative">
+                                       <button
+                                          onClick={() => setOpenDropdownId(openDropdownId === user.id ? null : user.id)}
+                                          className="p-2 hover:bg-gray-100 text-gray-400 hover:text-gray-900 rounded-lg transition-colors"
+                                       >
+                                          <MoreVertical className="w-5 h-5" />
+                                       </button>
+
+                                       {openDropdownId === user.id && (
+                                          <div className="absolute right-0 mt-2 w-40 bg-white rounded-xl shadow-lg border border-gray-100 z-50 animate-fade-in overflow-hidden">
+                                             <button
+                                                onClick={() => handleDeleteUser(user.id, user.fullName)}
+                                                className="w-full text-left px-4 py-3 text-sm text-red-600 font-bold hover:bg-red-50 flex items-center"
+                                             >
+                                                <Trash2 className="w-4 h-4 mr-2" /> Xóa tài khoản
+                                             </button>
+                                          </div>
+                                       )}
+                                    </div>
+
                                  </td>
                               </tr>
                            ))
@@ -144,7 +189,6 @@ const UserManagement = () => {
                </div>
             )}
 
-            {/* Phân trang (Nếu có nhiều hơn 1 trang) */}
             {(usersData?.totalPages ?? 0) > 1 && (
                <div className="flex justify-between items-center p-6 border-t border-gray-100 bg-gray-50/50">
                   <span className="text-sm font-bold text-gray-500">

@@ -3,6 +3,7 @@ import { doctorApi } from '@/api/doctorApi';
 import type { DoctorSearchFilter } from '@/types/doctor.types';
 import type { PaginationParams } from '@/types/common.types';
 import { appointmentApi } from '@/api/appointmentApi';
+import { useAuthStore } from '@/store/authStore';
 
 export const doctorKeys = {
     all: ['doctors'] as const,
@@ -80,14 +81,17 @@ export const useDoctorScheduleManagement = (params: { startDate: string; endDate
 // 3. Tạo lịch/cập nhật lịch
 export const useCreateBulkSchedules = () => {
     const queryClient = useQueryClient();
+    const { user } = useAuthStore(); // Lấy ID của bác sĩ đang đăng nhập
+
     return useMutation({
         mutationFn: async (data: any) => {
             const { default: axiosInstance } = await import('@/api/axiosInstance');
-            const res = await axiosInstance.post('doctor/schedules/bulk', data);
+            // Sửa lại URL cho chuẩn chuẩn với Backend: /doctors/{doctorId}/schedules/bulk
+            const res = await axiosInstance.post(`/doctors/${user?.id}/schedules/bulk`, data);
             return res.data;
         },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['doctor_schedule_manage'] })
+            queryClient.invalidateQueries({ queryKey: ['doctor_schedule_manage'] });
             queryClient.invalidateQueries({ queryKey: doctorKeys.all });
         },
     });

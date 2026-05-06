@@ -87,3 +87,21 @@ export const useToggleUserStatus = () => {
         }
     });
 };
+
+export const useDeleteUser = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: async (id: number) => {
+            const { default: axiosInstance } = await import('@/api/axiosInstance');
+            const response = await axiosInstance.delete(`/admin/users/${id}`);
+            return response.data;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['admin', 'users'] });
+            toast.success('Đã xóa tài khoản thành công!');
+        },
+        onError: () => {
+            toast.error('Có lỗi xảy ra khi xóa tài khoản (Có thể do user này đã có lịch khám/hóa đơn trong hệ thống).');
+        }
+    });
+};
