@@ -25,7 +25,7 @@ public class ScheduleController {
     }
 
     // Đánh dấu slot đã được đặt (Được gọi ngầm từ Appointment Service qua Feign Client)
-    @PatchMapping("/{scheduleId}/book")
+    @PutMapping("/{scheduleId}/book")
     public ResponseEntity<Void> markSlotBooked(
             @PathVariable Long doctorId,
             @PathVariable Long scheduleId) {
@@ -34,7 +34,7 @@ public class ScheduleController {
     }
 
     // Giải phóng slot khi bệnh nhân hủy lịch
-    @PatchMapping("/{scheduleId}/release")
+    @PutMapping("/{scheduleId}/release")
     public ResponseEntity<Void> releaseSlot(
             @PathVariable Long doctorId,
             @PathVariable Long scheduleId) {

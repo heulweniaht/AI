@@ -56,5 +56,15 @@ public class DoctorController {
         return ResponseEntity.ok(doctorService.updateDoctorStatus(id, status));
     }
 
+    @PostMapping("/internal/init-profile")
+    public ResponseEntity<Void> initDoctorProfile(
+            @RequestParam Long userId,
+            @RequestParam String fullName) {
+
+        // Gọi hàm từ tầng Service thay vì dùng trực tiếp Repository
+        doctorService.initDoctorProfile(userId, fullName);
+
+        return ResponseEntity.ok().build();
+    }
 
 }

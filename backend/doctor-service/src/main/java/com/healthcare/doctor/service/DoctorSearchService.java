@@ -113,18 +113,17 @@ public class DoctorSearchService implements DoctorService {
 
         return doctor.getUserId(); // Trả về userId để Admin Service dùng
     }
-    @PostMapping("/internal/init-profile")
-    public org.springframework.http.ResponseEntity<Void> initDoctorProfile(
-            @org.springframework.web.bind.annotation.RequestParam Long userId,
-            @org.springframework.web.bind.annotation.RequestParam String fullName) {
-
-        DoctorProfile newProfile = com.healthcare.doctor.entity.DoctorProfile.builder()
+    @Override
+    @Transactional
+    public void initDoctorProfile(Long userId, String fullName) {
+        // Tạo profile mới với trạng thái PENDING
+        DoctorProfile newProfile = DoctorProfile.builder()
                 .userId(userId)
                 .fullName(fullName)
                 .status("PENDING") // Ép cứng trạng thái khởi tạo
                 .build();
 
+        // Lưu vào cơ sở dữ liệu thông qua Repository
         doctorRepo.save(newProfile);
-        return org.springframework.http.ResponseEntity.ok().build();
     }
 }

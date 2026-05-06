@@ -2,6 +2,7 @@ package com.healthcare.auth.service;
 
 import com.healthcare.auth.entity.Role;
 import com.healthcare.auth.entity.User;
+import com.healthcare.auth.entity.UserStatus;
 import com.healthcare.auth.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,6 +29,7 @@ public class AdminUserService {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy User ID: " + userId));
 
         user.setLocked(isLocked);
+        user.setStatus(isLocked ? UserStatus.BANNED : UserStatus.ACTIVE);
         userRepository.save(user);
 
         log.info("Đã thay đổi trạng thái isLocked của User {} thành {}", userId, isLocked);
@@ -46,8 +48,10 @@ public class AdminUserService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy User ID: " + userId));
 
-        user.setEnabled(true);
+        user.setEnabled(true); // Bật quyền đăng nhập
+        user.setStatus(UserStatus.ACTIVE); // Cập nhật trạng thái thành ACTIVE
         userRepository.save(user);
-        log.info("Đã kích hoạt (enable = true) cho User ID: {}", userId);
+
+        log.info("Đã kích hoạt (enable = true, ACTIVE) cho User ID: {}", userId);
     }
 }

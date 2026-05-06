@@ -5,6 +5,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/v1/admin/users")
 @RequiredArgsConstructor
@@ -34,5 +36,21 @@ public class UserManagementController {
             @RequestParam(defaultValue = "10") int size) {
 
         return ResponseEntity.ok(userService.searchUsers(keyword, role, page, size));
+    }
+
+    @PutMapping("/{userId}/status")
+    public ResponseEntity<String> toggleUserStatus(
+            @PathVariable Long userId,
+            @RequestBody Map<String, Boolean> body) {
+
+        boolean isLocked = body.getOrDefault("isLocked", false);
+
+        if (isLocked) {
+            userService.lockUser(userId, "Vi phạm chính sách");
+            return ResponseEntity.ok("Đã khóa tài khoản");
+        } else {
+            userService.unlockUser(userId);
+            return ResponseEntity.ok("Đã mở khóa tài khoản");
+        }
     }
 }

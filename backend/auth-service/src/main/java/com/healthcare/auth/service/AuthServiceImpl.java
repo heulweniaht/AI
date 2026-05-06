@@ -1,13 +1,16 @@
 package com.healthcare.auth.service;
 
+import com.healthcare.auth.client.DoctorServiceClient;
 import com.healthcare.auth.dto.request.LoginRequest;
 import com.healthcare.auth.dto.request.RegisterRequest;
 import com.healthcare.auth.dto.response.AuthResponse;
 import com.healthcare.auth.entity.User;
 import com.healthcare.auth.entity.Role;
+import com.healthcare.auth.entity.UserStatus;
 import com.healthcare.auth.repository.UserRepository;
 import com.healthcare.auth.kafka.AuthEventProducer;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -18,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.concurrent.TimeUnit;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
     private final UserRepository userRepository;
@@ -27,32 +31,44 @@ public class AuthServiceImpl implements AuthService {
     private final AuthenticationManager authManager;
     private final JwtService jwtService;
     private final RedisTemplate<String, Object> redis;
+    private final DoctorServiceClient doctorServiceClient;
 
     @Override
     @Transactional
     public String register(RegisterRequest req) {
-        // 1. Kiểm tra email đã tồn tại chưa [cite: 314-315]
         if (userRepository.existsByEmail(req.getEmail())) {
             throw new RuntimeException("Email đã được sử dụng");
         }
+
         boolean isDoctor = req.getRole().equalsIgnoreCase("DOCTOR");
 
-        // 2. Tạo User và băm mật khẩu bằng BCrypt [cite: 116, 321-329]
+        // Khởi tạo User với status PENDING_VERIFY và enabled = false
         User user = User.builder()
                 .email(req.getEmail())
                 .passwordHash(passwordEncoder.encode(req.getPassword()))
                 .fullName(req.getFullName())
                 .phone(req.getPhone())
                 .role(Role.valueOf(req.getRole().toUpperCase()))
-                .enabled(!isDoctor)
+                .status(UserStatus.PENDING_VERIFY) // Gắn trạng thái cho DB
+                .enabled(false) // Khóa không cho đăng nhập
                 .build();
-        userRepository.save(user);
+
+        User savedUser = userRepository.save(user);
+
         if (isDoctor) {
+            try {
+                // Đồng bộ sang Doctor Service để tạo hồ sơ chờ duyệt
+                doctorServiceClient.initDoctorProfile(savedUser.getId(), savedUser.getFullName());
+            } catch (Exception e) {
+                log.error("Lỗi khi đồng bộ DoctorProfile: {}", e.getMessage());
+                throw new RuntimeException("Lỗi hệ thống khi tạo hồ sơ bác sĩ.");
+            }
             return "Đăng ký thành công. Tài khoản bác sĩ đang chờ Admin phê duyệt.";
         }
-        // 3. Xử lý OTP và thông báo qua Kafka [cite: 117-118, 333-334]
-//        String otp = otpService.generateAndStoreOtp(user.getEmail());
-//        eventProducer.publishOtpRequested(user.getEmail(), user.getFullName(), otp);
+
+        // Xử lý OTP cho Bệnh nhân (Giữ nguyên code cũ của bạn)
+        String otp = otpService.generateAndStoreOtp(user.getEmail());
+        eventProducer.publishOtpRequested(user.getEmail(), user.getFullName(), otp);
 
         return "Đăng ký thành công. Vui lòng kiểm tra email nhận mã OTP.";
     }

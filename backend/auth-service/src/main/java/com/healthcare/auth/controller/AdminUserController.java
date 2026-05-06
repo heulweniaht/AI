@@ -20,7 +20,7 @@ public class AdminUserController {
     }
 
     // Admin Service gọi vào đây để khóa/mở khóa
-    @PatchMapping("/{userId}/status")
+    @PutMapping("/{userId}/status")
     public ResponseEntity<Void> updateUserStatus(
             @PathVariable Long userId,
             @RequestParam boolean isLocked) {
@@ -38,7 +38,7 @@ public class AdminUserController {
         return ResponseEntity.ok(adminUserService.searchUsers(keyword, role, page, size));
     }
 
-    @PatchMapping("/{userId}/enable")
+    @PutMapping("/{userId}/enable")
     public ResponseEntity<Void> enableUser(@PathVariable Long userId) {
         adminUserService.enableUser(userId);
         return ResponseEntity.ok().build();

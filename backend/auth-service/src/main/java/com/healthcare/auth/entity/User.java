@@ -27,6 +27,11 @@ public class User implements UserDetails {
     @Enumerated(EnumType.STRING)
     private Role role;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    @Builder.Default
+    private UserStatus status = UserStatus.PENDING_VERIFY;
+
     private boolean enabled = false; // Chờ xác thực OTP mới enable
 
     private boolean isLocked = false;

@@ -13,6 +13,6 @@ public interface DoctorService {
     Page<DoctorListResponse> searchDoctors(DoctorSearchFilter filter, int page, int size);
     DoctorProfile updateDoctorInfo(Long id, String city, Double newFee);
     List<DoctorDetailResponse> getPendingDoctors();
-
+    void initDoctorProfile(Long userId, String fullName);
     Long updateDoctorStatus(Long id, String status);
 }

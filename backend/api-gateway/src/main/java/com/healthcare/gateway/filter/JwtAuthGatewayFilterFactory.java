@@ -54,6 +54,10 @@ public class JwtAuthGatewayFilterFactory extends AbstractGatewayFilterFactory<Jw
             ServerHttpRequest request = exchange.getRequest();
             String path = request.getURI().getPath();
 
+            if (request.getMethod().matches("OPTIONS")) {
+                return chain.filter(exchange);
+            }
+
             if (path.startsWith("/eureka")) {
                 return chain.filter(exchange);
             }

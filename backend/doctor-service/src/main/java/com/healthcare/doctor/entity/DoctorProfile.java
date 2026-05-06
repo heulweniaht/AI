@@ -10,6 +10,7 @@ import java.math.BigDecimal;
 @Data @Builder @NoArgsConstructor @AllArgsConstructor
 public class DoctorProfile {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private Long userId;
