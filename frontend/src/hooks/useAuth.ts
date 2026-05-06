@@ -44,9 +44,13 @@ export const useLogin = () => {
                 // 1. Cất Access Token vào Zustand ngay lập tức (để Axios Interceptor có thể lấy dùng)
                 setAccessToken(authResponse.accessToken);
 
-                // 2. Gọi API lấy thông tin Profile đầy đủ của User bằng token vừa nhận
-                const user = await authApi.getMe();
+                // 2. LẤY TRỰC TIẾP USER TỪ RESPONSE ĐĂNG NHẬP
+                const user = authResponse.user;
 
+                // 3. Kiểm tra nếu không có user thì throw lỗi (Debug)
+                if (!user) {
+                    throw new Error("Không có dữ liệu user");
+                }
                 // 3. Cập nhật trạng thái Đăng nhập chính thức vào Zustand Store (để AuthGuard mở cửa)
                 setAuth(authResponse.accessToken, user);
 

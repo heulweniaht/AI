@@ -1,43 +1,43 @@
-import axiosInstance from './axiosInstance'
-import type {
+import axiosInstance from './axiosInstance';
+import {
     LoginRequest, RegisterRequest, VerifyOtpRequest,
     AuthResponse, User
-} from '@/types/auth.types'
-import type { ApiResponse } from '@/types/common.types'
+} from '@/types/auth.types';
 
 export const authApi = {
     // Đăng nhập
     login: async (data: LoginRequest): Promise<AuthResponse> => {
-        const res = await axiosInstance.post<ApiResponse<AuthResponse>>(
+        // Đổi kiểu Generic và return trực tiếp res.data
+        const res = await axiosInstance.post<AuthResponse>(
             '/auth/login', data
         )
-        return res.data.data
+        return res.data;
     },
 
     // Đăng ký
-    register: async (data: RegisterRequest): Promise<{ message: string }> => {
-        const res = await axiosInstance.post<ApiResponse<{ message: string }>>(
+    register: async (data: RegisterRequest): Promise<string> => {
+        const res = await axiosInstance.post<string>(
             '/auth/register', data
         )
-        return res.data.data
+        return res.data;
     },
 
     // Xác thực OTP
-    verifyOtp: async (data: VerifyOtpRequest): Promise<{ message: string }> => {
-        const res = await axiosInstance.post<ApiResponse<{ message: string }>>(
+    verifyOtp: async (data: VerifyOtpRequest): Promise<string> => {
+        const res = await axiosInstance.post<string>(
             '/auth/verify-otp', data
         )
-        return res.data.data
+        return res.data;
     },
 
     // Đăng xuất
     logout: async (): Promise<void> => {
-        await axiosInstance.post('/auth/logout')
+        await axiosInstance.post('/auth/logout');
     },
 
     // Lấy thông tin tài khoản đang đăng nhập
     getMe: async (): Promise<User> => {
-        const res = await axiosInstance.get<ApiResponse<User>>('/auth/me')
-        return res.data.data
+        const res = await axiosInstance.get<User>('/auth/me');
+        return res.data;
     },
 }

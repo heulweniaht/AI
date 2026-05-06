@@ -31,6 +31,7 @@ spring:
           predicates:
             - Path=/api/v1/auth/**
           filters:
+            - JwtAuth
             - name: RequestRateLimiter
               args:
                 key-resolver: "#{@ipKeyResolver}"
@@ -107,4 +108,4 @@ eureka:
     service-url:
       defaultZone: http://admin:123456@localhost:8761/eureka/
 jwt:
-  secret: 123456
+  secret: ${JWT_SECRET:bXlTZWN1cmVTZWNyZXRLZXlGb3JKV1RIZWFsdGhjYXJlMjAyNQ==}

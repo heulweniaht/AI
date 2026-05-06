@@ -29,8 +29,13 @@ public class JwtAuthGatewayFilterFactory extends AbstractGatewayFilterFactory<Jw
 
     //Danh sách API không cần kiểm tra token
     private static final List<String> PUBLIC_PATHS = List.of(
-            "/api/v1/auth", "/api/v1/doctors", "/api/v1/specialties",
-            "/actuator", "/v3/api-docs"
+            "/api/v1/auth/login",
+            "/api/v1/auth/register",
+            "/api/v1/auth/verify-otp",
+            "/api/v1/doctors",
+            "/api/v1/specialties",
+            "/actuator",
+            "/v3/api-docs"
     );
 
     public JwtAuthGatewayFilterFactory(JwtService jwtService, ReactiveStringRedisTemplate redisTemplate) {
@@ -54,7 +59,7 @@ public class JwtAuthGatewayFilterFactory extends AbstractGatewayFilterFactory<Jw
             }
             //Kiểm tra API public
             boolean isPublic = PUBLIC_PATHS.stream().anyMatch(path::startsWith);
-            if(isPublic && (request.getMethod().name().equals("GET") || path.contains("/api/v1/auth"))){
+            if(isPublic){
                 return chain.filter(exchange);
             }
 

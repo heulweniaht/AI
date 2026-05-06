@@ -19,6 +19,7 @@ export interface AuthResponse {
     expiresIn: number
     userId: number
     role: UserRole
+    user: User
 }
 
 export interface LoginRequest {

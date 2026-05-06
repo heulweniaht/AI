@@ -41,18 +41,20 @@ public class AuthServiceImpl implements AuthService {
                 .email(req.getEmail())
                 .passwordHash(passwordEncoder.encode(req.getPassword()))
                 .fullName(req.getFullName())
+                .phone(req.getPhone())
                 .role(Role.valueOf(req.getRole().toUpperCase()))
-                .enabled(false)
+                .enabled(true)
                 .build();
         userRepository.save(user);
 
         // 3. Xử lý OTP và thông báo qua Kafka [cite: 117-118, 333-334]
-        String otp = otpService.generateAndStoreOtp(user.getEmail());
-        eventProducer.publishOtpRequested(user.getEmail(), user.getFullName(), otp);
+//        String otp = otpService.generateAndStoreOtp(user.getEmail());
+//        eventProducer.publishOtpRequested(user.getEmail(), user.getFullName(), otp);
 
         return "Đăng ký thành công. Vui lòng kiểm tra email nhận mã OTP.";
     }
 
+    @Override
     public AuthResponse login(LoginRequest req) {
         authManager.authenticate(
                 new UsernamePasswordAuthenticationToken(req.getEmail(), req.getPassword())
@@ -82,12 +84,14 @@ public class AuthServiceImpl implements AuthService {
         return AuthResponse.builder()
                 .accessToken(accessToken)
                 .tokenType("Bearer")
-                .expiresIn(900) // 15 phút (theo cấu hình của bạn)
+                .expiresIn(900) // 15 phút
                 .userId(user.getId())
                 .role(user.getRole().name())
+                .user(user)
                 .build();
     }
 
+    @Override
     public String verifyOtp(String email, String otp){
         boolean valid = otpService.verifyOtp(email,otp);
         if (!valid) {
@@ -101,6 +105,12 @@ public class AuthServiceImpl implements AuthService {
         userRepository.save(user);
 
         return "Xác thực tài khoản thành công! Bạn có thể đăng nhập";
+    }
+
+    @Override
+    public User getUserByEmail(String email) {
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin tài khoản"));
     }
 }
 

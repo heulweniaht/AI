@@ -3,6 +3,7 @@ package com.healthcare.auth.controller;
 import com.healthcare.auth.dto.request.LoginRequest;
 import com.healthcare.auth.dto.request.RegisterRequest;
 import com.healthcare.auth.dto.response.AuthResponse;
+import com.healthcare.auth.entity.User;
 import com.healthcare.auth.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -30,5 +31,11 @@ public class AuthController {
     @PostMapping("/verify-otp")
     public ResponseEntity<String> verifyOtp(@RequestParam String email, @RequestParam String otp) {
         return ResponseEntity.ok(authService.verifyOtp(email, otp));
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<User> getMe(@RequestHeader("X-User-Email") String email) {
+        User user = authService.getUserByEmail(email);
+        return ResponseEntity.ok(user);
     }
 }
