@@ -73,6 +73,12 @@ const PatientDashboard = () => {
                            {getDaysRemaining(nextAppointment.appointmentTime)}
                         </span>
                      </div>
+                     <button
+                        onClick={() => navigate('/doctors')}
+                        className="mt-6 bg-white text-primary-800 font-extrabold px-6 py-2.5 rounded-xl hover:shadow-lg transition-all hover:scale-105 shadow-sm flex items-center"
+                     >
+                        + Đặt thêm lịch khám mới
+                     </button>
                   </div>
                   <div className="mt-8 md:mt-0 bg-white p-6 rounded-[1.5rem] w-full md:w-auto shadow-xl border-4 border-primary-800 hover:scale-105 transition-transform cursor-pointer" onClick={() => navigate(`/doctors/${nextAppointment.doctorId}`)}>
                      <p className="text-gray-500 font-bold text-xs uppercase tracking-wider mb-3">Bác sĩ phụ trách của bạn</p>
@@ -150,8 +156,8 @@ const PatientDashboard = () => {
 
                <div className="bg-white rounded-[2rem] border border-gray-100 shadow-sm p-4 text-gray-600 font-medium">
                   {recentActivities.length > 0 ? (
-                     recentActivities.map((activity) => (
-                        <div key={activity.id} className="p-5 hover:bg-gray-50 rounded-[1.5rem] transition-colors cursor-pointer border-b border-gray-50 last:border-b-0 flex items-center gap-5 group">
+                     recentActivities.map((activity, index) => (
+                        <div key={activity.id || index} className="p-5 hover:bg-gray-50 rounded-[1.5rem] transition-colors cursor-pointer border-b border-gray-50 last:border-b-0 flex items-center gap-5 group">
                            <div className={`w-14 h-14 rounded-full flex justify-center items-center shrink-0 group-hover:scale-110 transition-transform ${activity.status === 'COMPLETED' ? 'bg-green-100 text-green-600' : activity.status === 'CANCELLED' ? 'bg-red-100 text-red-600' : 'bg-blue-100 text-blue-600'}`}>
                               {activity.status === 'COMPLETED' ? <CheckCircle2 className="w-7 h-7" /> : <FileText className="w-7 h-7" />}
                            </div>
@@ -159,8 +165,7 @@ const PatientDashboard = () => {
                               <p className="text-gray-900 font-extrabold pb-1 text-lg leading-tight">
                                  {activity.status === 'COMPLETED' ? 'Khám Thành Công' : activity.status === 'CANCELLED' ? 'Đã Hủy Lịch' : 'Đã Lên Lịch Khám'}
                               </p>
-                              {/* Sửa lại thêm giá trị mặc định */}
-                              <p className="text-sm font-bold text-gray-400 mt-1">BS. {activity.doctorName || 'Đang cập nhật'} (#BK{activity.id})</p>
+                              <p className="text-sm font-bold text-gray-400 mt-1">BS. {activity.doctorName || 'Đang cập nhật'} (#BK{activity.id || 'N/A'})</p>
                               <p className="text-xs text-primary-500 mt-1">{new Date(activity.appointmentTime).toLocaleString('vi-VN')}</p>
                            </div>
                         </div>

@@ -9,11 +9,11 @@ export const appointmentApi = {
     //Bệnh nhân đặt lịch mới
     bookAppointment: async (
         data: BookAppointmentRequest
-    ): Promise<Appointment> => {
-        const res = await axiosInstance.post<Appointment>(
+    ): Promise<any> => {
+        const res = await axiosInstance.post(
             '/appointments', data
         )
-        return res.data;
+        return res.data?.data || res.data || res;
     },
 
     //Lấy danh sách lịch khám của tôi

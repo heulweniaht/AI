@@ -70,19 +70,46 @@ const BookingPage = () => {
             },
             {
                onSuccess: async (appointmentResponse: any) => {
-                  // Nếu chọn VNPay -> Gửi tiếp request lấy link VNPay và chuyển trang
+
+                  // SỬA DÒNG NÀY: Bổ sung thêm việc tìm kiếm chữ 'appointmentId'
+                  const rawAppId = appointmentResponse?.data?.appointmentId
+                     || appointmentResponse?.appointmentId
+                     || appointmentResponse?.data?.id
+                     || appointmentResponse?.id;
+
+                  // 2. Ép kiểu tuyệt đối về Number
+                  const safeAppId = Number(rawAppId);
+                  const safeAmount = Number(doctor.consultationFee) || 150000;
+
+                  // 3. Kiểm tra an toàn trước khi gửi
+                  if (!safeAppId || isNaN(safeAppId)) {
+                     console.error("Lỗi: Không lấy được ID lịch khám từ response", appointmentResponse);
+                     alert("Không thể khởi tạo thanh toán do lỗi đồng bộ mã lịch khám.");
+                     return;
+                  }
+
+                  // Nếu chọn VNPay -> Gửi request lấy link VNPay
                   if (paymentMethod === 'VNPAY') {
                      try {
-                        const { paymentUrl } = await paymentApi.createPaymentUrl({
-                           appointmentId: appointmentResponse.id,
+                        const payload = {
+                           appointmentId: safeAppId,
                            method: 'VNPAY',
-                        });
+                           amount: safeAmount
+                        };
+
+                        const response = await paymentApi.createPaymentUrl(payload);
+
+                        // Lấy URL VNPay
+                        const paymentUrl = response?.paymentUrl || (response as any)?.data?.paymentUrl || (typeof response === 'string' ? response : null);
+
                         if (paymentUrl) {
                            window.location.href = paymentUrl;
-                           return;
+                        } else {
+                           alert("Không nhận được đường dẫn thanh toán từ máy chủ!");
                         }
                      } catch (error) {
                         console.error("Lỗi khi tạo VNPay url", error);
+                        alert("Cổng thanh toán VNPay đang bảo trì, vui lòng thử lại sau!");
                      }
                   }
                }

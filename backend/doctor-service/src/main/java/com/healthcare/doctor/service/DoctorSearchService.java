@@ -13,7 +13,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.PostMapping;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -31,12 +30,15 @@ public class DoctorSearchService implements DoctorService {
     @Cacheable(value = "doctor:detail", key = "#id", unless = "#result == null")
     public DoctorDetailResponse getDoctorById(Long id) {
         log.info("CACHE MISS: Tìm bác sĩ ID {} từ Database", id);
-        DoctorProfile doctor = doctorRepo.findByIdWithSpecialty(id)
+
+        // SỬA LỖI 2: Dùng findById mặc định của JPA thay vì findByIdWithSpecialty để tránh lỗi INNER JOIN khi bác sĩ chưa có khoa
+        DoctorProfile doctor = doctorRepo.findById(id)
                 .orElseThrow(() -> new RuntimeException("Bác sĩ không tồn tại: " + id));
 
         return DoctorDetailResponse.builder()
                 .id(doctor.getId())
                 .fullName(doctor.getFullName())
+                // Tránh lỗi NullPointerException khi bác sĩ chưa cập nhật Khoa
                 .specialtyName(doctor.getSpecialty() != null ? doctor.getSpecialty().getName() : "Chưa cập nhật")
                 .clinicCity(doctor.getClinicCity())
                 .gender(doctor.getGender())
@@ -71,10 +73,9 @@ public class DoctorSearchService implements DoctorService {
                 .build());
     }
 
-
     @Override
-    @Transactional // Hàm này có ghi vào DB nên phải ghi đè Transactional(readOnly = true)
-    @CacheEvict(value = "doctor:detail", key = "#id") // Xóa cache sau khi update
+    @Transactional
+    @CacheEvict(value = "doctor:detail", key = "#id")
     public DoctorProfile updateDoctorInfo(Long id, String city, Double newFee) {
         DoctorProfile doctor = doctorRepo.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy bác sĩ"));
@@ -103,7 +104,7 @@ public class DoctorSearchService implements DoctorService {
     @Override
     @Transactional
     @CacheEvict(value = "doctor:detail", key = "#id")
-    public Long updateDoctorStatus(Long id, String status) { // Đổi void thành Long
+    public Long updateDoctorStatus(Long id, String status) {
         DoctorProfile doctor = doctorRepo.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy bác sĩ"));
 
@@ -111,20 +112,20 @@ public class DoctorSearchService implements DoctorService {
         doctorRepo.save(doctor);
         log.info("Admin đã cập nhật trạng thái Bác sĩ ID: {} thành {}", id, status);
 
-        return doctor.getUserId(); // Trả về userId để Admin Service dùng
+        return doctor.getUserId();
     }
+
+    // SỬA LỖI 1: Hàm khởi tạo hồ sơ chuẩn xác
     @Override
     @Transactional
     public void initDoctorProfile(Long userId, String fullName) {
-        // Tạo profile mới với trạng thái PENDING
         DoctorProfile newProfile = DoctorProfile.builder()
-                .id(userId)
+                .id(userId)           // BẮT BUỘC CÓ DÒNG NÀY ĐỂ ĐỒNG BỘ ID
                 .userId(userId)
                 .fullName(fullName)
-                .status("PENDING") // Ép cứng trạng thái khởi tạo
+                .status("PENDING")
                 .build();
 
-        // Lưu vào cơ sở dữ liệu thông qua Repository
         doctorRepo.save(newProfile);
     }
 }

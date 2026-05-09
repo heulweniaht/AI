@@ -5,12 +5,11 @@ export const paymentApi = {
     // Tạo URL thanh toán
     createPaymentUrl: async (data: {
         appointmentId: number,
-        method: string
+        method?: string,
+        amount: number
     }): Promise<{ paymentUrl?: string; message: string }> => {
-        const res = await axiosInstance.post<ApiResponse<{ paymentUrl?: string; message: string }>>(
-            '/payments/', data
-        )
-        return res.data.data
+        const res = await axiosInstance.post('/payments', data);
+        return res.data?.data || res.data || res;
     },
 
     //Lấy lịch sử giao dịch của tôi
