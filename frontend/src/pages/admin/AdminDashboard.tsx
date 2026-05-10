@@ -4,6 +4,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsi
 import { useAdminStats } from '@/hooks/useAdmin';
 import { Spinner } from '@/components/common/Spinner';
 
+// Dữ liệu Fallback cho Biểu đồ (Vì Backend hiện tại chưa trả về mảng dữ liệu chart)
 const fallbackDataLine = [
     { name: 'T2', DoanhThu: 4000000, Kham: 24 },
     { name: 'T3', DoanhThu: 3000000, Kham: 13 },
@@ -24,11 +25,12 @@ const COLORS = ['#1565C0', '#00C49F', '#FFBB28', '#FF8042'];
 
 const AdminDashboard = () => {
 
+    // Fetch dữ liệu từ API /admin/dashboard/stats
     const { data: statsData, isLoading } = useAdminStats();
 
     if (isLoading) return <div className="py-20 flex justify-center"><Spinner /></div>;
 
-    // Ưu tiên dữ liệu API, nếu null thì dùng Fallback
+    // Ưu tiên dữ liệu API, nếu không có thì dùng Fallback
     const lineChartData = statsData?.revenueChart || fallbackDataLine;
     const pieChartData = statsData?.specialtyChart || fallbackDataPie;
 
@@ -36,13 +38,33 @@ const AdminDashboard = () => {
         <div className="p-8 md:p-12 animate-fade-in w-full max-w-7xl mx-auto">
             <h1 className="text-3xl lg:text-4xl font-extrabold text-gray-900 mb-8 tracking-tight">Tổng quan Hệ thống Admin V2</h1>
 
-            {/* THỐNG KÊ TỔNG QUAN */}
+            {/* THỐNG KÊ TỔNG QUAN (ĐÃ SỬA KHỚP VỚI BACKEND DTO) */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
                 {[
-                    { label: 'Tổng Bác sĩ', val: statsData?.totalDoctors || '450', icon: Stethoscope, color: 'bg-blue-50 text-blue-600' },
-                    { label: 'Lượng BN Online', val: statsData?.totalPatients || '12 K', icon: Users, color: 'bg-green-50 text-green-600' },
-                    { label: 'Booking Tuần/KPI', val: statsData?.weeklyBookings || '800', icon: Calendar, color: 'bg-purple-50 text-purple-600' },
-                    { label: 'Doanh thu', val: statsData?.totalRevenue ? `${(statsData.totalRevenue / 1000000).toFixed(1)} Tr` : '1.2 Tỷ', icon: DollarSign, color: 'bg-orange-50 text-orange-600' },
+                    {
+                        label: 'Tổng Bác sĩ',
+                        val: statsData?.totalDoctors ?? '...',
+                        icon: Stethoscope,
+                        color: 'bg-blue-50 text-blue-600'
+                    },
+                    {
+                        label: 'Tổng Người dùng',
+                        val: statsData?.totalUsers ?? '...',
+                        icon: Users,
+                        color: 'bg-green-50 text-green-600'
+                    },
+                    {
+                        label: 'Booking Hôm nay',
+                        val: statsData?.todayAppointments ?? '...',
+                        icon: Calendar,
+                        color: 'bg-purple-50 text-purple-600'
+                    },
+                    {
+                        label: 'Doanh thu tháng',
+                        val: statsData?.monthlyRevenue != null ? `${(statsData.monthlyRevenue / 1000000).toFixed(1)} Tr` : '...',
+                        icon: DollarSign,
+                        color: 'bg-orange-50 text-orange-600'
+                    },
                 ].map((stat, i) => (
                     <div key={i} className="bg-white p-6 md:p-8 rounded-[2rem] shadow-sm border border-gray-100 flex items-center hover:shadow-md transition-shadow">
                         <div className={`w-14 h-14 md:w-16 md:h-16 rounded-[1.5rem] flex items-center justify-center mr-4 md:mr-5 shrink-0 ${stat.color}`}>
@@ -59,9 +81,9 @@ const AdminDashboard = () => {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* BIỂU ĐỒ ĐƯỜNG (LINE CHART) */}
                 <div className="bg-white p-6 md:p-10 rounded-[2.5rem] shadow-sm border border-gray-100 lg:col-span-2">
-                    <div className="font-extrabold text-gray-900 text-2xl mb-8 flex justify-between">
+                    <div className="font-extrabold text-gray-900 text-2xl mb-8 flex justify-between items-center">
                         Biểu đồ Trực tuyến (Recharts Live)
-                        <span className="bg-green-100 text-green-700 text-sm font-bold px-3 py-1 rounded border border-green-200 self-center uppercase">Live</span>
+                        <span className="bg-green-100 text-green-700 text-xs md:text-sm font-bold px-3 py-1 rounded-full border border-green-200 uppercase tracking-widest">Live</span>
                     </div>
                     <div className="w-full h-[350px]">
                         <ResponsiveContainer width="100%" height="100%">
@@ -97,7 +119,7 @@ const AdminDashboard = () => {
                         </div>
                         <div className="flex flex-wrap justify-center gap-4 mt-2">
                             {pieChartData.map((entry: any, index: number) => (
-                                <div key={index} className="flex items-center text-sm font-extrabold text-gray-700 shadow-sm bg-gray-50 px-2 py-1 rounded">
+                                <div key={index} className="flex items-center text-sm font-extrabold text-gray-700 shadow-sm bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-100">
                                     <div className="w-3 h-3 rounded-full mr-2" style={{ backgroundColor: COLORS[index % COLORS.length] }}></div>
                                     {entry.name}
                                 </div>

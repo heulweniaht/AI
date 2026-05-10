@@ -51,4 +51,10 @@ export const doctorApi = {
         const res = await axiosInstance.get<Specialty[]>('/specialties');
         return res.data;
     },
+
+    updateFullProfile: async (id: number, data: any): Promise<string> => {
+        const res = await axiosInstance.put<string>(`/doctors/${id}/profile`, data);
+        return res.data;
+    },
+
 };

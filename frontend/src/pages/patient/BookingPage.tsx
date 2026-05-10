@@ -71,7 +71,6 @@ const BookingPage = () => {
             {
                onSuccess: async (appointmentResponse: any) => {
 
-                  // SỬA DÒNG NÀY: Bổ sung thêm việc tìm kiếm chữ 'appointmentId'
                   const rawAppId = appointmentResponse?.data?.appointmentId
                      || appointmentResponse?.appointmentId
                      || appointmentResponse?.data?.id

@@ -6,6 +6,7 @@ export interface Specialty {
     iconUrl: string
     description: string
     isActive: boolean
+    doctorCount?: number
 }
 
 export interface DoctorProfile {

@@ -1,6 +1,7 @@
 package com.healthcare.doctor.controller;
 
 import com.healthcare.doctor.dto.request.DoctorSearchFilter;
+import com.healthcare.doctor.dto.request.UpdateDoctorProfileRequest;
 import com.healthcare.doctor.dto.response.DoctorDetailResponse;
 import com.healthcare.doctor.dto.response.DoctorListResponse;
 import com.healthcare.doctor.entity.DoctorProfile;
@@ -65,6 +66,14 @@ public class DoctorController {
         doctorService.initDoctorProfile(userId, fullName);
 
         return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/{id}/profile")
+    public ResponseEntity<String> updateFullProfile(
+            @PathVariable Long id,
+            @RequestBody UpdateDoctorProfileRequest request) {
+        doctorService.updateFullProfile(id, request);
+        return ResponseEntity.ok("Cập nhật hồ sơ thành công");
     }
 
 }

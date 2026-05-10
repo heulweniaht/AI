@@ -5,6 +5,7 @@ import { authApi } from '@/api/authApi';
 import { useAuthStore } from '@/store/authStore';
 import type { LoginRequest } from '@/types/auth.types';
 import { getErrorMessage } from '@/api/apiHelpers';
+import axiosInstance from '@/api/axiosInstance';
 
 // 1. Quản lý "Chìa khóa" bộ nhớ đệm (Cache Keys) cho React Query
 export const authKeys = {
@@ -138,25 +139,39 @@ export const useRegister = () => {
 // HOOK 5: CẬP NHẬT HỒ SƠ NGƯỜI DÙNG (PUT /users/profile)
 // ============================================================================
 export const useUpdateProfile = () => {
-    // Lấy hàm updateUser từ store
     const { updateUser } = useAuthStore();
+    const queryClient = useQueryClient(); // THÊM DÒNG NÀY ĐỂ QUẢN LÝ CACHE
 
     return useMutation({
         mutationFn: async (data: any) => {
             const { default: axiosInstance } = await import('@/api/axiosInstance');
-            const response = await axiosInstance.put('/users/profile', data);
-            return response.data;
+            const response = await axiosInstance.put('/users/profile/me', data);
+            return response.data?.data || response.data;
         },
         onSuccess: (data) => {
             toast.success('Đã lưu các thay đổi hồ sơ y tế thành công!');
 
-            // Chỉ cập nhật cục data mới vào User state, giữ nguyên token cũ
-            if (data && data.data) {
-                updateUser(data.data);
+            // QUAN TRỌNG: Ép React Query xóa cache cũ và tải lại dữ liệu từ DB ngay lập tức
+            queryClient.invalidateQueries({ queryKey: ['patient-profile'] });
+
+            if (data && data.fullName) {
+                updateUser({ fullName: data.fullName });
             }
         },
         onError: () => {
             toast.error('Có lỗi xảy ra khi cập nhật hồ sơ. Vui lòng thử lại.');
         },
+    })
+};
+
+export const usePatientProfile = () => {
+    return useQuery({
+        queryKey: ['patient-profile'],
+        queryFn: async () => {
+            const { default: axiosInstance } = await import('@/api/axiosInstance');
+            const res = await axiosInstance.get('/users/profile/me');
+            return res.data?.data || res.data;
+        },
+        staleTime: 5 * 60 * 1000,
     });
 };

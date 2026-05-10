@@ -1,10 +1,13 @@
 package com.healthcare.doctor.service;
 
 import com.healthcare.doctor.dto.request.DoctorSearchFilter;
+import com.healthcare.doctor.dto.request.UpdateDoctorProfileRequest;
 import com.healthcare.doctor.dto.response.DoctorDetailResponse;
 import com.healthcare.doctor.dto.response.DoctorListResponse;
 import com.healthcare.doctor.entity.DoctorProfile;
+import com.healthcare.doctor.entity.Specialty;
 import com.healthcare.doctor.repository.DoctorRepository;
+import com.healthcare.doctor.repository.SpecialtyRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
@@ -25,6 +28,7 @@ import java.util.stream.Collectors;
 public class DoctorSearchService implements DoctorService {
 
     private final DoctorRepository doctorRepo;
+    private final SpecialtyRepository specialtyRepo;
 
     @Override
     @Cacheable(value = "doctor:detail", key = "#id", unless = "#result == null")
@@ -115,7 +119,6 @@ public class DoctorSearchService implements DoctorService {
         return doctor.getUserId();
     }
 
-    // SỬA LỖI 1: Hàm khởi tạo hồ sơ chuẩn xác
     @Override
     @Transactional
     public void initDoctorProfile(Long userId, String fullName) {
@@ -127,5 +130,33 @@ public class DoctorSearchService implements DoctorService {
                 .build();
 
         doctorRepo.save(newProfile);
+    }
+
+    @Override
+    @Transactional
+    @CacheEvict(value = "doctor:detail", key = "#id")
+    public void updateFullProfile(Long id, UpdateDoctorProfileRequest request) {
+        DoctorProfile doctor = doctorRepo.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy bác sĩ ID: " + id));
+
+        doctor.setFullName(request.getFullName());
+        doctor.setClinicName(request.getClinicName());
+        doctor.setClinicAddress(request.getClinicAddress());
+        doctor.setClinicCity(request.getClinicCity());
+        doctor.setConsultationFee(request.getConsultationFee());
+        doctor.setExperienceYears(request.getExperienceYears());
+        doctor.setBio(request.getBio());
+        doctor.setGender(request.getGender());
+        doctor.setAvatarUrl(request.getAvatarUrl());
+
+        // Xử lý cập nhật chuyên khoa
+        if (request.getSpecialtyId() != null) {
+            Specialty specialty = specialtyRepo.findById(request.getSpecialtyId())
+                    .orElseThrow(() -> new RuntimeException("Chuyên khoa không hợp lệ"));
+            doctor.setSpecialty(specialty);
+        }
+
+        doctorRepo.save(doctor);
+        log.info("Bác sĩ {} đã tự cập nhật hồ sơ cá nhân", id);
     }
 }

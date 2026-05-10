@@ -1,37 +1,48 @@
-import React, { useState } from 'react';
-import { Search, Filter, Star, Clock, MapPin } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom'; // Bổ sung useSearchParams
+import { Search, MapPin, Clock, Star, Filter } from 'lucide-react';
 import { useDoctors, useSpecialties } from '@/hooks/useDoctors';
-import type { DoctorSearchFilter } from '@/types/doctor.types';
+import { DoctorSearchFilter } from '@/types/doctor.types';
 import { Spinner } from '@/components/common/Spinner';
+
 const DoctorListPage = () => {
    const navigate = useNavigate();
 
-   // 1. Quản lý trạng thái bộ lọc (Filter) và Trang hiện tại (Page)
-   const [filter, setFilter] = useState<DoctorSearchFilter>({});
+   // BẮT THAM SỐ TỪ URL ĐỂ FILTER KHỚP VỚI CHUYÊN KHOA ĐÃ CHỌN
+   const [searchParams] = useSearchParams();
+   const urlSpecialtyId = searchParams.get('specialtyId');
+
+   // Khởi tạo state bộ lọc với specialtyId lấy từ URL (Nếu có)
+   const [filter, setFilter] = useState<DoctorSearchFilter>({
+      specialtyId: urlSpecialtyId ? Number(urlSpecialtyId) : undefined
+   });
    const [page, setPage] = useState(0);
 
-   // 2. Gọi Hook lấy dữ liệu Bác Sĩ từ Backend
+   // Cập nhật lại filter nếu người dùng quay lui/tiến trên trình duyệt (Back/Forward)
+   useEffect(() => {
+      setFilter(prev => ({
+         ...prev,
+         specialtyId: urlSpecialtyId ? Number(urlSpecialtyId) : undefined
+      }));
+      setPage(0);
+   }, [urlSpecialtyId]);
+
    const {
       data: doctorData,
       isLoading: isDoctorsLoading,
       isError: isDoctorsError
    } = useDoctors(filter, { page, size: 10, sort: filter.sort });
 
-   // 3. Gọi Hook lấy danh sách Chuyên khoa
    const { data: specialties } = useSpecialties();
 
-   // Xử lý khi chọn/bỏ chọn chuyên khoa
    const handleSpecialtyChange = (specialtyId: number) => {
       setFilter((prev) => ({
          ...prev,
-         // Nếu bấm lại chính nó thì hủy lọc, nếu bấm cái khác thì lọc theo cái mới
          specialtyId: prev.specialtyId === specialtyId ? undefined : specialtyId
       }));
-      setPage(0); // Luôn về trang 1 khi đổi bộ lọc
+      setPage(0);
    };
 
-   // Xử lý khi xóa tất cả bộ lọc
    const handleClearFilters = () => {
       setFilter({});
       setPage(0);
@@ -40,10 +51,7 @@ const DoctorListPage = () => {
    return (
       <div className="bg-gray-50 min-h-[calc(100vh-64px)] py-12 px-4 sm:px-6 lg:px-8">
          <div className="max-w-7xl mx-auto flex flex-col md:flex-row gap-8 animate-fade-in">
-
-            {/* 
-            SIDEBAR: BỘ LỌC (FILTER)
-        */}
+            {/* SIDEBAR: BỘ LỌC (FILTER) */}
             <div className="w-full md:w-1/4">
                <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 sticky top-24">
                   <div className="flex items-center justify-between mb-6">
@@ -72,7 +80,7 @@ const DoctorListPage = () => {
                         />
                      </div>
 
-                     {/* Lọc theo Chuyên khoa (Dữ liệu thật) */}
+                     {/* Lọc theo Chuyên khoa */}
                      <div>
                         <label className="font-bold text-gray-900 block mb-3">Chuyên khoa</label>
                         {specialties?.map(s => (
@@ -102,9 +110,9 @@ const DoctorListPage = () => {
                                     setPage(0);
                                  }}
                                  className={`flex-1 py-2 border-2 rounded-xl text-sm font-bold transition-colors
-                        ${filter.minRating === r ? 'bg-primary-100 border-primary-400 text-primary-800' : 'border-gray-100 bg-gray-50 hover:bg-primary-50 hover:border-primary-200 text-gray-700'}`}
+                                 ${filter.minRating === r ? 'bg-primary-100 border-primary-400 text-primary-800' : 'border-gray-100 bg-gray-50 hover:bg-primary-50 hover:border-primary-200 text-gray-700'}`}
                               >
-                                 {r}★
+                                 {r} ★
                               </button>
                            ))}
                         </div>
@@ -113,9 +121,7 @@ const DoctorListPage = () => {
                </div>
             </div>
 
-            {/* 
-            MAIN: DANH SÁCH BÁC SĨ
-             */}
+            {/* MAIN: DANH SÁCH BÁC SĨ */}
             <div className="w-full md:w-3/4">
                <div className="flex justify-between items-center mb-6 bg-white p-4 rounded-2xl border border-gray-200 shadow-sm">
                   <p className="text-gray-600 font-medium">Tìm thấy <span className="font-extrabold text-gray-900 text-lg">{doctorData?.totalElements || 0}</span> Bác sĩ</p>
@@ -131,7 +137,6 @@ const DoctorListPage = () => {
                   </select>
                </div>
 
-               {/* Xử lý Trạng thái Đang tải hoặc Lỗi */}
                {isDoctorsLoading ? (
                   <div className="flex justify-center py-20">
                      <Spinner />
@@ -152,9 +157,9 @@ const DoctorListPage = () => {
                         <div key={doctor.id} className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 hover:shadow-xl transition-all flex flex-col md:flex-row gap-8 group">
 
                            {/* Ảnh Bác sĩ */}
-                           <div className="relative overflow-hidden rounded-2xl md:w-56 h-56 shrink-0">
+                           <div className="relative overflow-hidden rounded-2xl md:w-56 h-56 shrink-0 cursor-pointer" onClick={() => navigate(`/doctors/${doctor.id}`)}>
                               <img
-                                 src={doctor.avatarUrl || "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=300&h=300&fit=crop"}
+                                 src={doctor.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(doctor.fullName)}&background=random`}
                                  alt={doctor.fullName}
                                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                               />
@@ -168,7 +173,7 @@ const DoctorListPage = () => {
                                        className="text-2xl font-extrabold text-gray-900 hover:text-primary-600 cursor-pointer transition-colors"
                                        onClick={() => navigate(`/doctors/${doctor.id}`)}
                                     >
-                                       {doctor.fullName}
+                                       BS. {doctor.fullName}
                                     </h3>
                                     <p className="text-primary-600 font-extrabold mb-2 uppercase tracking-wide text-sm">
                                        {doctor.specialtyName}
@@ -213,7 +218,7 @@ const DoctorListPage = () => {
                   </div>
                )}
 
-               {/* Phân trang (Nếu tổng trang > 1) */}
+               {/* Phân trang */}
                {(doctorData?.totalPages ?? 0) > 1 && (
                   <div className="flex justify-center mt-10 space-x-2">
                      <button
@@ -235,11 +240,10 @@ const DoctorListPage = () => {
                      </button>
                   </div>
                )}
-
             </div>
          </div>
       </div>
-   )
-}
+   );
+};
 
 export default DoctorListPage;

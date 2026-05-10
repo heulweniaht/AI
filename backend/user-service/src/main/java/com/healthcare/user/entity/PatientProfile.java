@@ -11,7 +11,8 @@ public class PatientProfile {
 
     @Id
     private Long id;
-
+    private Double weight;
+    private Double height;
     private String fullName;
     private LocalDate dateOfBirth;
     private String gender;
@@ -19,7 +20,7 @@ public class PatientProfile {
     private String address;
     private String emergencyContact;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(columnDefinition = "JSON")
     private String allergies;
 
 }

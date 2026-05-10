@@ -21,18 +21,21 @@ export const useApproveDoctor = () => {
     return useMutation({
         mutationFn: async ({ id, status }: { id: number, status: 'APPROVED' | 'REJECTED' }) => {
             const isApproved = status === 'APPROVED';
-
-            // SỬA: Đổi axiosInstance.put thành .post, đổi /approve thành /approval
-            // SỬA: Gửi đúng định dạng body (isApproved, reason) mà backend đang cần
             const response = await axiosInstance.post(`/admin/doctors/${id}/approval`, {
                 isApproved: isApproved,
                 reason: isApproved ? '' : 'Hồ sơ chưa đạt yêu cầu chuyên môn'
             });
-
             return response.data;
         },
         onSuccess: (_, variables) => {
+            // 1. Làm mới danh sách chờ duyệt
             queryClient.invalidateQueries({ queryKey: ['admin', 'pending-doctors'] });
+
+            // 2. THÊM DÒNG NÀY: Làm mới danh sách user tổng
+            queryClient.invalidateQueries({ queryKey: ['admin', 'users'] });
+
+            // 3. THÊM DÒNG NÀY: Làm mới luôn Dashboard Stats (nếu trang chủ admin có đếm số bác sĩ)
+            queryClient.invalidateQueries({ queryKey: ['admin', 'stats'] });
 
             if (variables.status === 'APPROVED') {
                 toast.success('Phê duyệt bác sĩ thành công!');

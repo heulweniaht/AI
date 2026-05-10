@@ -18,6 +18,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.concurrent.TimeUnit;
 
 @Service
@@ -95,6 +96,10 @@ public class AuthServiceImpl implements AuthService {
         } catch (org.springframework.security.authentication.BadCredentialsException e) {
             throw new RuntimeException("Tài khoản hoặc mật khẩu không chính xác");
         }
+
+        // 3.  Cập nhật thời điểm đăng nhập
+        user.setLastLoginAt(LocalDateTime.now());
+        userRepository.save(user); // Lưu vào DB
 
         // 4. Sinh cặp Token
         String accessToken = jwtService.generateAccessToken(user);

@@ -12,5 +12,8 @@ public class UpdateProfileRequest {
     private String bloodType;
     private String address;
     private String emergencyContact;
+
     private String allergies;
+    private Double weight;
+    private Double height;
 }

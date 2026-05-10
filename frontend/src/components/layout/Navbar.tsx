@@ -11,7 +11,6 @@ const Navbar = () => {
 
   const { isLoggedIn, user, logout } = useAuthStore();
 
-
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 20);
@@ -39,14 +38,30 @@ const Navbar = () => {
     <nav className={`fixed w-full z-50 transition-all duration-300 ${isScrolled ? 'bg-white shadow-md py-2' : 'bg-white py-4 shadow-sm'}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center">
-          <Link to="/" className="flex items-center space-x-2 group">
+
+          {/* 1. LOGO */}
+          <Link to="/" className="flex items-center space-x-2 group shrink-0">
             <div className="p-2 bg-primary-600 rounded-lg group-hover:bg-primary-700 transition">
               <Activity className="h-6 w-6 text-white" />
             </div>
             <span className="text-xl font-extrabold text-gray-900 tracking-tight">SmartHealth</span>
           </Link>
 
-          <div className="hidden md:flex space-x-4 items-center">
+          {/* 2. THÊM MỚI: DANH SÁCH MENU TRÊN MÀN HÌNH MÁY TÍNH (DESKTOP) */}
+          <div className="hidden md:flex items-center space-x-8">
+            {navLinks.map((link) => (
+              <Link
+                key={link.name}
+                to={link.path}
+                className={`text-base font-bold hover:text-primary-600 transition ${location.pathname === link.path ? 'text-primary-600' : 'text-gray-700'}`}
+              >
+                {link.name}
+              </Link>
+            ))}
+          </div>
+
+          {/* 3. NÚT ĐĂNG NHẬP / DASHBOARD (DESKTOP) */}
+          <div className="hidden md:flex space-x-4 items-center shrink-0">
             {isLoggedIn ? (
               <div className="flex items-center space-x-4">
                 <span className="font-bold text-gray-700">Chào, {user?.fullName}</span>
@@ -73,6 +88,7 @@ const Navbar = () => {
             )}
           </div>
 
+          {/* 4. NÚT MỞ MENU MOBILE */}
           <div className="md:hidden">
             <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="text-gray-600">
               {mobileMenuOpen ? <X className="h-7 w-7" /> : <Menu className="h-7 w-7" />}
@@ -81,6 +97,7 @@ const Navbar = () => {
         </div>
       </div>
 
+      {/* MENU MOBILE */}
       {mobileMenuOpen && (
         <div className="md:hidden bg-white shadow-xl absolute w-full left-0 border-t animate-slide-up top-full">
           <div className="px-4 pt-2 pb-6 space-y-1 flex flex-col">

@@ -1,5 +1,6 @@
 package com.healthcare.doctor.controller;
 
+import com.healthcare.doctor.dto.response.SpecialtyDTO;
 import com.healthcare.doctor.entity.Specialty;
 import com.healthcare.doctor.repository.SpecialtyRepository;
 import lombok.RequiredArgsConstructor;
@@ -18,8 +19,7 @@ public class SpecialtyController {
     private final SpecialtyRepository specialtyRepository;
 
     @GetMapping
-    public ResponseEntity<List<Specialty>> getAllSpecialties() {
-        // Trả về tất cả chuyên khoa đang Active
-        return ResponseEntity.ok(specialtyRepository.findByIsActiveTrue());
+    public ResponseEntity<List<SpecialtyDTO>> getAllSpecialties() {
+        return ResponseEntity.ok(specialtyRepository.findAllWithDoctorCount());
     }
 }

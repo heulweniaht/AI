@@ -36,6 +36,9 @@ public class User implements UserDetails {
 
     private boolean isLocked = false;
 
+    @Column(name = "last_login_at")
+    private LocalDateTime lastLoginAt;
+
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;

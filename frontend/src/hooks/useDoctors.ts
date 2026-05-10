@@ -4,6 +4,8 @@ import type { DoctorSearchFilter } from '@/types/doctor.types';
 import type { PaginationParams } from '@/types/common.types';
 import { appointmentApi } from '@/api/appointmentApi';
 import { useAuthStore } from '@/store/authStore';
+import toast from 'react-hot-toast';
+import { getErrorMessage } from '@/api/apiHelpers';
 
 export const doctorKeys = {
     all: ['doctors'] as const,
@@ -94,5 +96,21 @@ export const useCreateBulkSchedules = () => {
             queryClient.invalidateQueries({ queryKey: ['doctor_schedule_manage'] });
             queryClient.invalidateQueries({ queryKey: doctorKeys.all });
         },
+    });
+};
+
+export const useUpdateDoctorProfile = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: ({ id, data }: { id: number; data: any }) =>
+            doctorApi.updateFullProfile(id, data),
+        onSuccess: (_, variables) => {
+            // Xóa cache để load lại dữ liệu mới nhất
+            queryClient.invalidateQueries({ queryKey: doctorKeys.detail(variables.id) });
+            toast.success('Hồ sơ của bạn đã được cập nhật thành công!');
+        },
+        onError: (error) => {
+            toast.error(getErrorMessage(error));
+        }
     });
 };

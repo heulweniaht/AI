@@ -1,6 +1,7 @@
 package com.healthcare.doctor.service;
 
 import com.healthcare.doctor.dto.request.DoctorSearchFilter;
+import com.healthcare.doctor.dto.request.UpdateDoctorProfileRequest;
 import com.healthcare.doctor.dto.response.DoctorDetailResponse;
 import com.healthcare.doctor.dto.response.DoctorListResponse;
 import com.healthcare.doctor.entity.DoctorProfile;
@@ -15,4 +16,5 @@ public interface DoctorService {
     List<DoctorDetailResponse> getPendingDoctors();
     void initDoctorProfile(Long userId, String fullName);
     Long updateDoctorStatus(Long id, String status);
+    void updateFullProfile(Long id, UpdateDoctorProfileRequest request);
 }

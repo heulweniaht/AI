@@ -29,6 +29,8 @@ public class PatientProfileService {
                 .address(profile.getAddress())
                 .emergencyContact(profile.getEmergencyContact())
                 .allergies(profile.getAllergies())
+                .weight(profile.getWeight())
+                .height(profile.getHeight())
                 .build();
     }
 
@@ -44,8 +46,11 @@ public class PatientProfileService {
         profile.setAddress(request.getAddress());
         profile.setEmergencyContact(request.getEmergencyContact());
         profile.setAllergies(request.getAllergies());
+        profile.setWeight(request.getWeight());
+        profile.setHeight(request.getHeight());
 
         profileRepository.save(profile);
         return getProfile(userId);
     }
+
 }

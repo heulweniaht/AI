@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Activity, Home, Calendar, Users, FileText, Settings, ShieldAlert, LogOut } from 'lucide-react';
+import { Activity, Home, Calendar, Users, FileText, Settings, ShieldAlert, LogOut, User } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 
 const Sidebar = ({ role }: { role: 'patient' | 'doctor' | 'admin' }) => {
@@ -18,6 +18,7 @@ const Sidebar = ({ role }: { role: 'patient' | 'doctor' | 'admin' }) => {
       { name: 'Bảng điều khiển', path: '/doctor/dashboard', icon: Home },
       { name: 'Quản lý lịch', path: '/doctor/schedule', icon: Calendar },
       { name: 'Khách hàng', path: '/doctor/patients', icon: Users },
+      { name: 'Hồ sơ cá nhân', path: '/doctor/profile', icon: User },
     ],
     admin: [
       { name: 'Thống kê KPI', path: '/admin/dashboard', icon: Activity },
@@ -30,8 +31,8 @@ const Sidebar = ({ role }: { role: 'patient' | 'doctor' | 'admin' }) => {
   const navLinks = menus[role] || [];
 
   const handleLogout = () => {
-     logout();
-     navigate('/');
+    logout();
+    navigate('/');
   }
 
   return (
@@ -41,18 +42,18 @@ const Sidebar = ({ role }: { role: 'patient' | 'doctor' | 'admin' }) => {
           <Activity className="h-6 w-6 text-white" />
         </div>
         <div>
-           <Link to="/" className="text-xl font-bold block hover:text-primary-400">SmartHealth</Link>
-           <span className="text-xs text-primary-400 font-medium uppercase tracking-wider">{role.toUpperCase()} PORTAL</span>
+          <Link to="/" className="text-xl font-bold block hover:text-primary-400">SmartHealth</Link>
+          <span className="text-xs text-primary-400 font-medium uppercase tracking-wider">{role.toUpperCase()} PORTAL</span>
         </div>
       </div>
-      
+
       <div className="p-6">
         <div className="flex items-center space-x-4 mb-8">
-           <img src={`https://ui-avatars.com/api/?name=${role.toUpperCase()}&background=0D8ABC&color=fff`} className="w-12 h-12 rounded-full border-2 border-slate-700" alt="Avatar" />
-           <div>
-              <p className="text-sm font-bold leading-tight">Xin chào,</p>
-              <p className="text-xs text-slate-400">{role === 'admin' ? 'Quản trị viên' : 'Đang sử dụng'}</p>
-           </div>
+          <img src={`https://ui-avatars.com/api/?name=${role.toUpperCase()}&background=0D8ABC&color=fff`} className="w-12 h-12 rounded-full border-2 border-slate-700" alt="Avatar" />
+          <div>
+            <p className="text-sm font-bold leading-tight">Xin chào,</p>
+            <p className="text-xs text-slate-400">{role === 'admin' ? 'Quản trị viên' : 'Đang sử dụng'}</p>
+          </div>
         </div>
         <nav className="space-y-2">
           {navLinks.map((link) => {
@@ -66,12 +67,12 @@ const Sidebar = ({ role }: { role: 'patient' | 'doctor' | 'admin' }) => {
           })}
         </nav>
       </div>
-      
+
       <div className="mt-auto p-6 border-t border-slate-800">
-         <button onClick={handleLogout} className="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-slate-400 hover:bg-red-500/10 hover:text-red-500 font-medium transition-colors">
-            <LogOut className="h-5 w-5" />
-            <span>Đăng xuất</span>
-         </button>
+        <button onClick={handleLogout} className="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-slate-400 hover:bg-red-500/10 hover:text-red-500 font-medium transition-colors">
+          <LogOut className="h-5 w-5" />
+          <span>Đăng xuất</span>
+        </button>
       </div>
     </div>
   );
