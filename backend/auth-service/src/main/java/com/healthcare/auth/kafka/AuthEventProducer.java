@@ -13,21 +13,46 @@ import java.util.Map;
 @Slf4j
 public class AuthEventProducer {
 
+    private static final String TOPIC_NOTIFICATION = "notification-topic";
+
     private final KafkaTemplate<String, Object> kafkaTemplate;
 
+    /**
+     * Event: User PATIENT đăng ký thành công → Notification-Service gửi OTP qua email.
+     */
     public void publishOtpRequested(String email, String fullName, String otp) {
-        Map<String, String> evenData = new HashMap<>();
-        evenData.put("email", email);
-        evenData.put("fullName", fullName);
-        evenData.put("otp", otp);
-        evenData.put("evenType", "OTP_REQUESTES");
+        Map<String, String> event = new HashMap<>();
+        event.put("eventType", "OTP_REQUESTED");
+        event.put("email", email);
+        event.put("fullName", fullName);
+        event.put("otp", otp);
 
-        kafkaTemplate.send("user.otp.requested", email, evenData)
+        kafkaTemplate.send(TOPIC_NOTIFICATION, email, event)
                 .whenComplete((result, ex) -> {
                     if (ex == null) {
-                        log.info("Đã gửi sự kiện OTP cho {}", email);
+                        log.info("[Kafka] Đã gửi OTP_REQUESTED cho {}", email);
                     } else {
-                        log.error("Lỗi khi gửi sự kiện OTP: {}", ex.getMessage());
+                        log.error("[Kafka] Lỗi gửi OTP_REQUESTED: {}", ex.getMessage());
+                    }
+                });
+    }
+
+    /**
+     * Event: User yêu cầu quên mật khẩu → Notification-Service gửi mật khẩu mới qua email thật.
+     */
+    public void publishForgotPassword(String email, String fullName, String newPassword) {
+        Map<String, String> event = new HashMap<>();
+        event.put("eventType", "FORGOT_PASSWORD");
+        event.put("email", email);
+        event.put("fullName", fullName);
+        event.put("newPassword", newPassword);
+
+        kafkaTemplate.send(TOPIC_NOTIFICATION, email, event)
+                .whenComplete((result, ex) -> {
+                    if (ex == null) {
+                        log.info("[Kafka] Đã gửi FORGOT_PASSWORD cho {}", email);
+                    } else {
+                        log.error("[Kafka] Lỗi gửi FORGOT_PASSWORD: {}", ex.getMessage());
                     }
                 });
     }

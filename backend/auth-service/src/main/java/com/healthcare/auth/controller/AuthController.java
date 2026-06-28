@@ -6,6 +6,7 @@ import com.healthcare.auth.dto.response.AuthResponse;
 import com.healthcare.auth.entity.User;
 import com.healthcare.auth.service.AuthService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Email;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,24 +19,32 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<String> register(@Valid @RequestBody RegisterRequest request) {
-        String message = authService.register(request);
-
-        return ResponseEntity.ok(message);
+        return ResponseEntity.ok(authService.register(request));
     }
 
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
-        // Trả về JSON chứa Access Token cho Client
         return ResponseEntity.ok(authService.login(request));
     }
+
     @PostMapping("/verify-otp")
-    public ResponseEntity<String> verifyOtp(@RequestParam String email, @RequestParam String otp) {
+    public ResponseEntity<String> verifyOtp(
+            @RequestParam @Email String email,
+            @RequestParam String otp) {
         return ResponseEntity.ok(authService.verifyOtp(email, otp));
+    }
+
+    /**
+     * POST /api/v1/auth/forgot-password?email=user@example.com
+     * Sinh mật khẩu mới ngẫu nhiên, gửi về email thật qua Kafka → Notification-Service.
+     */
+    @PostMapping("/forgot-password")
+    public ResponseEntity<String> forgotPassword(@RequestParam @Email String email) {
+        return ResponseEntity.ok(authService.forgotPassword(email));
     }
 
     @GetMapping("/me")
     public ResponseEntity<User> getMe(@RequestHeader("X-User-Email") String email) {
-        User user = authService.getUserByEmail(email);
-        return ResponseEntity.ok(user);
+        return ResponseEntity.ok(authService.getUserByEmail(email));
     }
 }

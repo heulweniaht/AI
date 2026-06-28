@@ -21,36 +21,56 @@ public class AuthEventConsumer {
     private final EmailService emailService;
     private final NotificationLogRepository logRepository;
 
-    // Lắng nghe topic "user.otp.requested" từ nhóm "notification-group"
-    @KafkaListener(topics = "user.otp.requested", groupId = "notification-group")
-    public void onOtpRequested(@Payload Map<String, String> eventData, Acknowledgment ack) {
-        String email = eventData.get("email");
-        String fullName = eventData.get("fullName");
-        String otp = eventData.get("otp");
+    /**
+     * Lắng nghe topic "notification-topic" — xử lý các sự kiện từ Auth-Service.
+     * eventType: OTP_REQUESTED | FORGOT_PASSWORD
+     */
+    @KafkaListener(topics = "notification-topic", groupId = "notification-group")
+    public void onAuthEvent(@Payload Map<String, String> eventData, Acknowledgment ack) {
+        String eventType = eventData.get("eventType");
+        String email     = eventData.get("email");
+        String fullName  = eventData.get("fullName");
 
-        log.info("Nhận được yêu cầu gửi OTP cho email: {}", email);
+        log.info("[Kafka] Nhận event '{}' cho email: {}", eventType, email);
 
         try {
-            // 1. Thực hiện gửi Email
-            emailService.sendOtpEmail(email, fullName, otp);
+            String logContent;
 
-            // 2. Lưu vào DB để làm bằng chứng
-            NotificationLog notifLog = NotificationLog.builder()
+            switch (eventType != null ? eventType : "") {
+
+                case "OTP_REQUESTED" -> {
+                    String otp = eventData.get("otp");
+                    emailService.sendOtpEmail(email, fullName, otp);
+                    logContent = "Đã gửi OTP: " + otp;
+                }
+
+                case "FORGOT_PASSWORD" -> {
+                    String newPassword = eventData.get("newPassword");
+                    emailService.sendForgotPasswordEmail(email, fullName, newPassword);
+                    logContent = "Đã gửi mật khẩu mới qua email";
+                }
+
+                default -> {
+                    log.warn("[Kafka] Bỏ qua event không xác định: {}", eventType);
+                    ack.acknowledge();
+                    return;
+                }
+            }
+
+            // Lưu log vào DB
+            logRepository.save(NotificationLog.builder()
                     .recipient(email)
-                    .type("OTP_REQUESTED")
-                    .content("Đã gửi mã OTP: " + otp)
+                    .type(eventType)
+                    .content(logContent)
                     .status("SUCCESS")
                     .sentAt(LocalDateTime.now())
-                    .build();
-            logRepository.save(notifLog);
+                    .build());
 
-            // 3. BÁO CÁO THÀNH CÔNG VỚI KAFKA (Manual ACK)
-            // Chỉ khi dòng này chạy, Kafka mới xóa tin nhắn. Nếu lỗi ở trên, dòng này không chạy, Kafka sẽ gửi lại.
-            ack.acknowledge();
+            ack.acknowledge(); // Manual ACK — chỉ acknowledge khi xử lý thành công
 
         } catch (Exception e) {
-            log.error("Gửi OTP thất bại, Kafka sẽ tiến hành thử lại (Retry). Lỗi: {}", e.getMessage());
-            // KHÔNG gọi ack.acknowledge() ở đây để Kafka tự động gửi lại tin nhắn này
+            log.error("[Kafka] Xử lý event '{}' thất bại, sẽ retry. Lỗi: {}", eventType, e.getMessage());
+            // Không acknowledge → Kafka tự động retry
         }
     }
 }

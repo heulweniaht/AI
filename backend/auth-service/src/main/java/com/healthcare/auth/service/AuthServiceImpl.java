@@ -9,6 +9,7 @@ import com.healthcare.auth.entity.Role;
 import com.healthcare.auth.entity.UserStatus;
 import com.healthcare.auth.repository.UserRepository;
 import com.healthcare.auth.kafka.AuthEventProducer;
+import com.healthcare.auth.util.PasswordUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -43,22 +44,22 @@ public class AuthServiceImpl implements AuthService {
 
         boolean isDoctor = req.getRole().equalsIgnoreCase("DOCTOR");
 
-        // Khởi tạo User với status PENDING_VERIFY và enabled = false
+        // DOCTOR: khóa chờ Admin phê duyệt chứng chỉ
+        // PATIENT/USER: khóa chờ xác thực OTP (sẽ mở sau khi verify)
         User user = User.builder()
                 .email(req.getEmail())
                 .passwordHash(passwordEncoder.encode(req.getPassword()))
                 .fullName(req.getFullName())
                 .phone(req.getPhone())
                 .role(Role.valueOf(req.getRole().toUpperCase()))
-                .status(UserStatus.PENDING_VERIFY) // Gắn trạng thái cho DB
-                .enabled(false) // Khóa không cho đăng nhập
+                .status(UserStatus.PENDING_VERIFY)
+                .enabled(false)
                 .build();
 
         User savedUser = userRepository.save(user);
 
         if (isDoctor) {
             try {
-                // Đồng bộ sang Doctor Service để tạo hồ sơ chờ duyệt
                 doctorServiceClient.initDoctorProfile(savedUser.getId(), savedUser.getFullName());
             } catch (Exception e) {
                 log.error("Lỗi khi đồng bộ DoctorProfile: {}", e.getMessage());
@@ -67,57 +68,48 @@ public class AuthServiceImpl implements AuthService {
             return "Đăng ký thành công. Tài khoản bác sĩ đang chờ Admin phê duyệt.";
         }
 
-        // Xử lý OTP cho Bệnh nhân (Giữ nguyên code cũ của bạn)
-        String otp = otpService.generateAndStoreOtp(user.getEmail());
-        eventProducer.publishOtpRequested(user.getEmail(), user.getFullName(), otp);
+        // PATIENT: sinh OTP → đẩy vào Kafka → Notification-Service gửi email
+        String otp = otpService.generateAndStoreOtp(savedUser.getEmail());
+        eventProducer.publishOtpRequested(savedUser.getEmail(), savedUser.getFullName(), otp);
 
-        return "Đăng ký thành công. Vui lòng kiểm tra email nhận mã OTP.";
+        return "Đăng ký thành công. Vui lòng kiểm tra email để nhận mã OTP xác thực.";
     }
 
     @Override
     public AuthResponse login(LoginRequest req) {
-        // 1. Tìm user trước để lấy thông tin Role
         User user = userRepository.findByEmail(req.getEmail())
                 .orElseThrow(() -> new RuntimeException("Tài khoản hoặc mật khẩu không chính xác"));
 
-        // 2. Dùng try-catch để bắt chính xác lỗi từ Spring Security
         try {
             authManager.authenticate(
                     new UsernamePasswordAuthenticationToken(req.getEmail(), req.getPassword())
             );
         } catch (org.springframework.security.authentication.DisabledException e) {
-            // ĐÓN LÕNG LỖI DISABLED Ở ĐÂY
             if (user.getRole() == Role.DOCTOR) {
-                // Chủ động ném ra RuntimeException để GlobalExceptionHandler (ở bài trước) bắt lại thành JSON chuẩn
                 throw new RuntimeException("Tài khoản đang chờ Admin phê duyệt.");
             } else {
-                throw new RuntimeException("Tài khoản chưa được kích hoạt OTP.");
+                throw new RuntimeException("Tài khoản chưa được kích hoạt OTP. Vui lòng kiểm tra email.");
             }
         } catch (org.springframework.security.authentication.BadCredentialsException e) {
             throw new RuntimeException("Tài khoản hoặc mật khẩu không chính xác");
         }
 
-        // 3.  Cập nhật thời điểm đăng nhập
         user.setLastLoginAt(LocalDateTime.now());
-        userRepository.save(user); // Lưu vào DB
+        userRepository.save(user);
 
-        // 4. Sinh cặp Token
         String accessToken = jwtService.generateAccessToken(user);
         String refreshToken = jwtService.generateRefreshToken(user.getEmail());
 
-        // 5. Lưu Refresh Token vào Redis (Sống 7 ngày)
-        // Việc này giúp ta có thể khóa tài khoản (thu hồi token) bất kỳ lúc nào bằng cách xóa nó khỏi Redis.
         redis.opsForValue().set(
-                "rt:" + user.getId(), // Key trong Redis
-                refreshToken,         // Giá trị
-                7, TimeUnit.DAYS      // Hạn sử dụng
+                "rt:" + user.getId(),
+                refreshToken,
+                7, TimeUnit.DAYS
         );
 
-        // 6. Trả kết quả
         return AuthResponse.builder()
                 .accessToken(accessToken)
                 .tokenType("Bearer")
-                .expiresIn(900) // 15 phút
+                .expiresIn(900)
                 .userId(user.getId())
                 .role(user.getRole().name())
                 .user(user)
@@ -125,8 +117,8 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public String verifyOtp(String email, String otp){
-        boolean valid = otpService.verifyOtp(email,otp);
+    public String verifyOtp(String email, String otp) {
+        boolean valid = otpService.verifyOtp(email, otp);
         if (!valid) {
             throw new RuntimeException("OTP không hợp lệ hoặc đã hết hạn");
         }
@@ -134,10 +126,31 @@ public class AuthServiceImpl implements AuthService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy user"));
 
+        // Mở khóa PATIENT sau khi xác thực OTP thành công
         user.setEnabled(true);
+        user.setStatus(UserStatus.ACTIVE);
         userRepository.save(user);
 
-        return "Xác thực tài khoản thành công! Bạn có thể đăng nhập";
+        return "Xác thực tài khoản thành công! Bạn có thể đăng nhập.";
+    }
+
+    @Override
+    @Transactional
+    public String forgotPassword(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy tài khoản với email này"));
+
+        // Sinh mật khẩu ngẫu nhiên 10 ký tự
+        String newPassword = PasswordUtil.generateRandomPassword();
+
+        // Cập nhật mật khẩu mới (đã mã hóa) vào DB
+        user.setPasswordHash(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+
+        // Đẩy event vào Kafka → Notification-Service gửi email chứa mật khẩu mới
+        eventProducer.publishForgotPassword(email, user.getFullName(), newPassword);
+
+        return "Mật khẩu mới đã được gửi về email của bạn.";
     }
 
     @Override
@@ -146,6 +159,3 @@ public class AuthServiceImpl implements AuthService {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin tài khoản"));
     }
 }
-
-
-

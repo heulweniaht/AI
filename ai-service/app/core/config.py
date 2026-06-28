@@ -42,6 +42,9 @@ class Settings(BaseSettings):
     # ── Database (PostgreSQL cho AI data) ─────────────────────────────────
     DATABASE_URL: str = "postgresql+asyncpg://ai_user:pass@localhost:5432/ai_db"
 
+    # ── Kafka ─────────────────────────────────────────────────────────────
+    KAFKA_BOOTSTRAP_SERVERS: str = "localhost:9092"
+
     # ── CORS ──────────────────────────────────────────────────────────────
     ALLOWED_ORIGINS: List[str] = ["http://localhost:3000"]
 

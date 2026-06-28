@@ -9,6 +9,6 @@ public interface AuthService {
     String register(RegisterRequest req);
     AuthResponse login(LoginRequest req);
     String verifyOtp(String email, String otp);
-
+    String forgotPassword(String email);
     User getUserByEmail(String email);
 }
