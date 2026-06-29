@@ -23,6 +23,7 @@ public class AppointmentEventProducer {
         eventData.put("patientEmail", patientEmail);
         eventData.put("patientName", patientName);
         eventData.put("doctorName", doctorName);
+        eventData.put("scheduleId", appt.getScheduleId());
         eventData.put("appointmentTime", appt.getAppointmentTime().toString());
 
         kafkaTemplate.send("appointment.booked", appt.getId().toString(), eventData)

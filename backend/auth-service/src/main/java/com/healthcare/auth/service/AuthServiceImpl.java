@@ -2,6 +2,7 @@ package com.healthcare.auth.service;
 
 import com.healthcare.auth.client.DoctorServiceClient;
 import com.healthcare.auth.dto.request.LoginRequest;
+import com.healthcare.auth.dto.request.RefreshTokenRequest;
 import com.healthcare.auth.dto.request.RegisterRequest;
 import com.healthcare.auth.dto.response.AuthResponse;
 import com.healthcare.auth.entity.User;
@@ -10,6 +11,7 @@ import com.healthcare.auth.entity.UserStatus;
 import com.healthcare.auth.repository.UserRepository;
 import com.healthcare.auth.kafka.AuthEventProducer;
 import com.healthcare.auth.util.PasswordUtil;
+import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -157,5 +159,71 @@ public class AuthServiceImpl implements AuthService {
     public User getUserByEmail(String email) {
         return userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin tài khoản"));
+    }
+
+    @Override
+    public String logout(String authorizationHeader) {
+        if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
+            throw new RuntimeException("Token không hợp lệ");
+        }
+
+        String token = authorizationHeader.substring(7);
+
+        try {
+            Claims claims = jwtService.extractAllClaims(token);
+            String jti = claims.get("jti", String.class);
+            Long userId = claims.get("userId", Long.class);
+
+            // Ghi jti vào blacklist Redis với TTL = thời gian còn lại của token
+            long ttlMs = jwtService.getRemainingTtlMs(token);
+            if (ttlMs > 0) {
+                redis.opsForValue().set(
+                        "jti:blacklist:" + jti,
+                        "1",
+                        ttlMs,
+                        java.util.concurrent.TimeUnit.MILLISECONDS
+                );
+            }
+
+            // Xóa luôn refresh token trong Redis
+            redis.delete("rt:" + userId);
+
+            log.info("User {} đã đăng xuất. JTI {} đã bị blacklist.", userId, jti);
+            return "Đăng xuất thành công.";
+
+        } catch (Exception e) {
+            throw new RuntimeException("Token không hợp lệ hoặc đã hết hạn");
+        }
+    }
+
+    @Override
+    public AuthResponse refreshToken(RefreshTokenRequest req) {
+        String refreshToken = req.getRefreshToken();
+
+        if (!jwtService.isTokenValid(refreshToken)) {
+            throw new RuntimeException("Refresh token đã hết hạn. Vui lòng đăng nhập lại.");
+        }
+
+        String email = jwtService.extractEmail(refreshToken);
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Tài khoản không tồn tại"));
+
+        // Kiểm tra refresh token trong Redis có khớp không (chống token bị đánh cắp)
+        Object storedToken = redis.opsForValue().get("rt:" + user.getId());
+        if (storedToken == null || !storedToken.toString().equals(refreshToken)) {
+            throw new RuntimeException("Refresh token không hợp lệ hoặc đã bị thu hồi.");
+        }
+
+        // Sinh access token mới, giữ nguyên refresh token cũ
+        String newAccessToken = jwtService.generateAccessToken(user);
+
+        return AuthResponse.builder()
+                .accessToken(newAccessToken)
+                .tokenType("Bearer")
+                .expiresIn(900)
+                .userId(user.getId())
+                .role(user.getRole().name())
+                .build();
     }
 }

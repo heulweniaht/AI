@@ -1,6 +1,7 @@
 package com.healthcare.auth.controller;
 
 import com.healthcare.auth.dto.request.LoginRequest;
+import com.healthcare.auth.dto.request.RefreshTokenRequest;
 import com.healthcare.auth.dto.request.RegisterRequest;
 import com.healthcare.auth.dto.response.AuthResponse;
 import com.healthcare.auth.entity.User;
@@ -27,11 +28,23 @@ public class AuthController {
         return ResponseEntity.ok(authService.login(request));
     }
 
+    @PostMapping("/logout")
+    public ResponseEntity<String> logout(
+            @RequestHeader("Authorization") String authHeader) {
+        return ResponseEntity.ok(authService.logout(authHeader));
+    }
+
     @PostMapping("/verify-otp")
     public ResponseEntity<String> verifyOtp(
             @RequestParam @Email String email,
             @RequestParam String otp) {
         return ResponseEntity.ok(authService.verifyOtp(email, otp));
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<AuthResponse> refreshToken(
+            @Valid @RequestBody RefreshTokenRequest request) {
+        return ResponseEntity.ok(authService.refreshToken(request));
     }
 
     /**

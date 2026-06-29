@@ -36,4 +36,6 @@ public interface DoctorRepository extends JpaRepository<DoctorProfile, Long> {
     void updateRating(@Param("id") Long id, @Param("avg") Double avg, @Param("total") Long total);
 
     List<DoctorProfile> findByStatus(String status);
+
+    boolean existsById(Long id);
 }

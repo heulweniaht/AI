@@ -35,7 +35,9 @@ public class JwtAuthGatewayFilterFactory extends AbstractGatewayFilterFactory<Jw
             "/api/v1/doctors",
             "/api/v1/specialties",
             "/actuator",
-            "/v3/api-docs"
+            "/v3/api-docs",
+            "/api/v1/auth/forgot-password",
+            "/api/v1/auth/refresh"
     );
 
     public JwtAuthGatewayFilterFactory(JwtService jwtService, ReactiveStringRedisTemplate redisTemplate) {

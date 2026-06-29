@@ -53,7 +53,7 @@ public class AppointmentServiceImpl implements AppointmentService {
                     .reason(req.getReason())
                     .symptomsJson(symptomsJson)
                     .status(AppointmentStatus.PENDING)
-                    .appointmentTime(LocalDateTime.now().plusDays(1)) // Giả lập giờ khám
+                    .appointmentTime(resolveAppointmentTime(req.getDoctorId(), req.getScheduleId()))
                     .build();
 
             Appointment savedAppt = appointmentRepo.save(appointment);
@@ -81,6 +81,16 @@ public class AppointmentServiceImpl implements AppointmentService {
             slotService.releaseSlot(req.getScheduleId());
             log.error("Lỗi khi đặt lịch, đã nhả Redis Lock: {}", e.getMessage());
             throw new RuntimeException("Đặt lịch thất bại do lỗi hệ thống: " + e.getMessage());
+        }
+    }
+
+    private LocalDateTime resolveAppointmentTime(Long doctorId, Long scheduleId) {
+        try {
+            var slotInfo = doctorClient.getSlotInfo(doctorId, scheduleId);
+            return LocalDateTime.of(slotInfo.getScheduleDate(), slotInfo.getStartTime());
+        } catch (Exception e) {
+            log.warn("Không lấy được thông tin slot từ Doctor Service, dùng fallback. Lỗi: {}", e.getMessage());
+            return LocalDateTime.now().plusDays(1); // fallback nếu Doctor Service down
         }
     }
 

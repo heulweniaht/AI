@@ -26,6 +26,7 @@ import UserManagement from './pages/admin/UserManagement';
 import DoctorApproval from './pages/admin/DoctorApproval';
 import ReportPage from './pages/admin/ReportPage';
 import DoctorProfilePage from './pages/doctor/DoctorProfilePage';
+import ForgotPasswordPage from './pages/public/ForgotPasswordPage';
 
 function App() {
    return (
@@ -36,7 +37,7 @@ function App() {
          <Route path="/ai-checker" element={<PageWrapper><SymptomCheckerPage /></PageWrapper>} />
          <Route path="/doctors" element={<PageWrapper><DoctorListPage /></PageWrapper>} />
          <Route path="/specialties" element={<PageWrapper><SpecialtiesPage /></PageWrapper>} />
-
+         <Route path="/forgot-password" element={<PageWrapper><ForgotPasswordPage /></PageWrapper>} />
          <Route path="/doctors/:id" element={<PageWrapper><DoctorDetailPage /></PageWrapper>} />
 
          <Route path="/booking/:id" element={

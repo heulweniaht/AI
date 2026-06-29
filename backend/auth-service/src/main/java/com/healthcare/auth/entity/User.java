@@ -23,6 +23,7 @@ public class User implements UserDetails {
     private String passwordHash;
     private String fullName;
     private String phone;
+    private String avatarUrl;
 
     @Enumerated(EnumType.STRING)
     private Role role;
@@ -58,4 +59,8 @@ public class User implements UserDetails {
     @Override public boolean isAccountNonLocked() { return true; }
     @Override public boolean isCredentialsNonExpired() { return true; }
     @Override public boolean isEnabled() { return enabled; }
+
+    public String getAvatarUrl() {
+        return this.avatarUrl;
+    }
 }

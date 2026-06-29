@@ -1,6 +1,7 @@
 package com.healthcare.auth.service;
 
 import com.healthcare.auth.dto.request.LoginRequest;
+import com.healthcare.auth.dto.request.RefreshTokenRequest;
 import com.healthcare.auth.dto.request.RegisterRequest;
 import com.healthcare.auth.dto.response.AuthResponse;
 import com.healthcare.auth.entity.User;
@@ -11,4 +12,6 @@ public interface AuthService {
     String verifyOtp(String email, String otp);
     String forgotPassword(String email);
     User getUserByEmail(String email);
+    String logout(String authorizationHeader);
+    AuthResponse refreshToken(RefreshTokenRequest req);
 }

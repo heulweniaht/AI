@@ -22,6 +22,8 @@ public class Payment {
     @Column(nullable = false)
     private BigDecimal amount; // Số tiền
 
+    private String patientEmail;  // Email bệnh nhân để gửi biên lai
+
     private String method; // Ví dụ: "VNPAY", "CASH"
 
     @Enumerated(EnumType.STRING)

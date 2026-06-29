@@ -56,12 +56,8 @@ public class PaymentServiceImpl implements PaymentService {
                 ipAddress
         );
 
-        // Chú ý: Ở đây ta lưu "tạm" email bệnh nhân vào DB không? Tốt nhất là không.
-        // Tương lai ta sẽ gọi FeignClient sang User Service để lấy Email xịn.
-        // Hiện tại ta dùng Redis lưu tạm email để IPN dùng tạm cũng được, nhưng để đơn giản bài toán,
-        // tôi sẽ mượn cột `method` để cất cái email vào đó cho bước IPN có cái để gửi mail.
-        // (Trong dự án thực tế, bạn sẽ dùng Feign gọi User Service)
-        payment.setMethod("VNPAY|" + email);
+        payment.setMethod("VNPAY");
+        payment.setPatientEmail(email);
         paymentRepo.save(payment);
 
         return PaymentUrlResponse.builder().paymentUrl(paymentUrl).build();
@@ -85,8 +81,9 @@ public class PaymentServiceImpl implements PaymentService {
         paymentRepo.save(payment);
 
         // Bóc tách email mà ta đã "nhét lén" ở trên
-        String patientEmail = payment.getMethod().split("\\|").length > 1 ? payment.getMethod().split("\\|")[1] : "unknown@email.com";
-        payment.setMethod("VNPAY"); // Trả lại tên đúng cho DB
+        String patientEmail = payment.getPatientEmail() != null
+                ? payment.getPatientEmail()
+                : "unknown@email.com";
 
         // Phát sự kiện lên Kafka[cite: 1]
         eventProducer.publishPaymentSuccess(payment, patientEmail);

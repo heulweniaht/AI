@@ -127,6 +127,20 @@ const LoginPage = () => {
             </button>
           </form>
 
+          <div className="flex items-center my-6">
+            <div className="flex-1 border-t border-gray-200"></div>
+            <span className="px-4 text-sm font-medium text-gray-400">hoặc</span>
+            <div className="flex-1 border-t border-gray-200"></div>
+          </div>
+
+          <a
+            href={`${import.meta.env.VITE_API_BASE_URL}/oauth2/authorization/google`}
+            className="w-full flex items-center justify-center gap-3 py-3 border-2 border-gray-200 rounded-2xl hover:bg-gray-50 transition"
+          >
+            <img src="/google-icon.svg" alt="Google" className="w-5 h-5" />
+            <span className="font-semibold text-gray-600">Đăng nhập với Google</span>
+          </a>
+
           <div className="mt-8 text-center text-sm font-medium text-gray-500">
             Chưa có tài khoản? <Link to="/register" className="text-primary-600 hover:underline">Tạo tài khoản mới</Link>
           </div>

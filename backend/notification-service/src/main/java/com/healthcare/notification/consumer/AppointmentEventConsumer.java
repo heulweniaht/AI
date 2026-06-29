@@ -39,7 +39,10 @@ public class AppointmentEventConsumer {
 
             log.info("Xử lý gửi email xác nhận đặt lịch cho: {}", patientEmail);
 
-            // emailService.sendAppointmentConfirmation(patientEmail, patientName, doctorName);
+            String appointmentTime = event.get("appointmentTime") != null
+                    ? event.get("appointmentTime").toString()
+                    : "Vui lòng kiểm tra hệ thống";
+            emailService.sendAppointmentConfirmation(patientEmail, patientName, doctorName, appointmentTime);
 
             if (phone != null) {
                 smsService.sendAppointmentReminder(phone, doctorName, LocalDateTime.now().plusDays(1));

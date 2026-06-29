@@ -1,6 +1,7 @@
 package com.healthcare.appointment.client;
 
 import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -16,4 +17,9 @@ public interface DoctorServiceClient {
     // Gọi API giải phóng lịch sang Doctor Service
     @PutMapping("/api/v1/doctors/{doctorId}/schedules/{scheduleId}/release")
     void releaseSlot(@PathVariable("doctorId") Long doctorId, @PathVariable("scheduleId") Long scheduleId);
+
+    @GetMapping("/api/v1/doctors/{doctorId}/schedules/{scheduleId}")
+    com.healthcare.appointment.dto.response.SlotInfoResponse getSlotInfo(
+            @PathVariable("doctorId") Long doctorId,
+            @PathVariable("scheduleId") Long scheduleId);
 }
